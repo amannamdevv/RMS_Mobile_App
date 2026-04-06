@@ -43,7 +43,7 @@ export default function SiteTypeDetailsScreen({ route, navigation }: Props) {
     try {
       // Fetch all sites of this type with filters for export
       const res = await api.getSitesByType(siteType, localFilters, 1, 10000);
-      
+
       const sitesToExport = (res && res.status === 'success') ? res.data : [];
 
       if (sitesToExport.length === 0) {
@@ -209,20 +209,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#c5d4eeff' },
   iconBtn: { padding: 8 },
   headerSub: { color: '#94a3b8', fontSize: 11 },
-  searchContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#fff', 
-    marginHorizontal: 16, 
-    marginTop: 12, 
-    paddingHorizontal: 12, 
-    borderRadius: 12, 
-    height: 48, 
-    elevation: 3, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 3 
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    height: 48,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3
   },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, fontSize: 14, color: '#1e293b', padding: 0 },
