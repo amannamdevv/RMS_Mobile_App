@@ -1,0 +1,446 @@
+/**
+ * SiteMaintenanceToolScreen.tsx
+ *
+ * Handles: Infrastructure Upgrade, SMPS, DCEM Calibration tabs
+ * API: GET /api/tool/
+ * Same API as TTTool — uses equipment + infra data
+ *
+ * route.params.initialTab: 'infra' | 'smps' | 'dcem'
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    View, Text, StyleSheet, ScrollView, TouchableOpacity,
+    ActivityIndicator, RefreshControl, FlatList, TextInput,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Feather';
+import { api } from '../../api';
+import Sidebar from '../../components/Sidebar';
+import AppHeader from '../../components/AppHeader';
+import AppIcon from '../../components/AppIcon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
+import { Alert } from 'react-native';
+
+type TabKey = 'infra' | 'smps' | 'dcem';
+
+const TAB_INFO: Record<TabKey, { label: string; icon: string; color: string }> = {
+    infra: { label: 'Infrastructure Upgrade', icon: 'layers', color: '#2a6f97' },
+    smps: { label: 'SMPS', icon: 'zap', color: '#01497c' },
+    dcem: { label: 'DCEM Calibration', icon: 'sliders', color: '#468faf' },
+};
+
+// ─── Status helpers ───────────────────────────────────────────
+function equipColor(cls: string): string {
+    if (cls === 'operational') return '#10b981';
+    if (cls === 'attention') return '#f59e0b';
+    if (cls === 'critical') return '#ef4444';
+    return '#94a3b8';
+}
+
+function daysRemainingColor(days: number): string {
+    if (days < 0) return '#ef4444';
+    if (days < 30) return '#f59e0b';
+    return '#10b981';
+}
+
+// ─── Equipment / SMPS Card ────────────────────────────────────
+function EquipCard({ item }: { item: any }) {
+    const [open, setOpen] = useState(false);
+    const col = equipColor(item.status_class || '');
+
+    return (
+        <TouchableOpacity style={EC.card} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
+            <View style={EC.row}>
+                <View style={{ flex: 1 }}>
+                    <Text style={EC.site} numberOfLines={1}>{item.site_id}</Text>
+                    <Text style={EC.type}>{item.equipment_type}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                    <View style={[EC.badge, { backgroundColor: `${col}15`, borderColor: col }]}>
+                        <View style={[EC.dot, { backgroundColor: col }]} />
+                        <Text style={[EC.badgeTxt, { color: col }]}>{item.status_label || '—'}</Text>
+                    </View>
+                    <Icon name={open ? 'chevron-up' : 'chevron-down'} size={12} color="#94a3b8" />
+                </View>
+            </View>
+            {open && (
+                <View style={EC.detail}>
+                    <View style={EC.div} />
+                    {[
+                        { l: 'Installation Date', v: item.installation_date || '—' },
+                        { l: 'Last Maintenance', v: item.last_maintenance || '—' },
+                        { l: 'Equipment Type', v: item.equipment_type || '—' },
+                        { l: 'Status', v: item.status_label || '—' },
+                    ].map(r => (
+                        <View key={r.l} style={EC.dRow}>
+                            <Text style={EC.dl}>{r.l}</Text>
+                            <Text style={EC.dv}>{r.v}</Text>
+                        </View>
+                    ))}
+                </View>
+            )}
+        </TouchableOpacity>
+    );
+}
+const EC = StyleSheet.create({
+    card: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3 },
+    row: { flexDirection: 'row', alignItems: 'flex-start' },
+    site: { fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 2 },
+    type: { fontSize: 10, color: '#64748b' },
+    badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, gap: 5 },
+    dot: { width: 7, height: 7, borderRadius: 4 },
+    badgeTxt: { fontSize: 10, fontWeight: '700' },
+    detail: { marginTop: 10 },
+    div: { height: 1, backgroundColor: '#f1f5f9', marginBottom: 10 },
+    dRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
+    dl: { fontSize: 11, color: '#64748b', fontWeight: '600' },
+    dv: { fontSize: 11, color: '#1e293b', fontWeight: '700' },
+});
+
+// ─── DCEM / Calibration Card ──────────────────────────────────
+function DCEMCard({ item }: { item: any }) {
+    const [open, setOpen] = useState(false);
+    // Simulate days remaining from installation date
+    const installDate = item.installation_date ? new Date(item.installation_date) : null;
+    const nextDue = installDate ? new Date(installDate.getTime() + 365 * 24 * 60 * 60 * 1000) : null;
+    const daysLeft = nextDue ? Math.floor((nextDue.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+    const dCol = daysLeft !== null ? daysRemainingColor(daysLeft) : '#94a3b8';
+    const col = equipColor(item.status_class || '');
+
+    return (
+        <TouchableOpacity style={EC.card} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
+            <View style={EC.row}>
+                <View style={{ flex: 1 }}>
+                    <Text style={EC.site} numberOfLines={1}>{item.site_id}</Text>
+                    <Text style={EC.type}>{item.equipment_type}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                    {daysLeft !== null && (
+                        <View style={[EC.badge, { backgroundColor: `${dCol}15`, borderColor: dCol }]}>
+                            <Text style={[EC.badgeTxt, { color: dCol }]}>
+                                {daysLeft < 0 ? 'Overdue' : `${daysLeft}d remaining`}
+                            </Text>
+                        </View>
+                    )}
+                    <View style={[EC.badge, { backgroundColor: `${col}15`, borderColor: col }]}>
+                        <View style={[EC.dot, { backgroundColor: col }]} />
+                        <Text style={[EC.badgeTxt, { color: col }]}>{item.status_label || '—'}</Text>
+                    </View>
+                    <Icon name={open ? 'chevron-up' : 'chevron-down'} size={12} color="#94a3b8" />
+                </View>
+            </View>
+            {open && (
+                <View style={EC.detail}>
+                    <View style={EC.div} />
+                    {[
+                        { l: 'Installation Date', v: item.installation_date || '—' },
+                        { l: 'Next Due', v: nextDue ? nextDue.toISOString().split('T')[0] : '—' },
+                        { l: 'Days Remaining', v: daysLeft !== null ? (daysLeft < 0 ? 'Overdue by ' + Math.abs(daysLeft) + 'd' : daysLeft + ' days') : '—' },
+                        { l: 'Status', v: item.status_label || '—' },
+                    ].map(r => (
+                        <View key={r.l} style={EC.dRow}>
+                            <Text style={EC.dl}>{r.l}</Text>
+                            <Text style={[EC.dv, r.l === 'Days Remaining' && { color: dCol }]}>{r.v}</Text>
+                        </View>
+                    ))}
+                </View>
+            )}
+        </TouchableOpacity>
+    );
+}
+
+// ─── Stat Summary Card ────────────────────────────────────────
+function StatRow({ items }: { items: { label: string; value: any; color: string }[] }) {
+    return (
+        <View style={{ flexDirection: 'row', marginBottom: 14, gap: 6 }}>
+            {items.map(item => (
+                <View key={item.label} style={[SS.card, { borderTopColor: item.color }]}>
+                    <Text style={[SS.val, { color: item.color }]}>{item.value ?? 0}</Text>
+                    <Text style={SS.lab}>{item.label}</Text>
+                </View>
+            ))}
+        </View>
+    );
+}
+const SS = StyleSheet.create({
+    card: { backgroundColor: '#fff', borderRadius: 12, padding: 12, flex: 1, borderTopWidth: 3, elevation: 2, alignItems: 'center' },
+    val: { fontSize: 20, fontWeight: '800', marginBottom: 3 },
+    lab: { fontSize: 8, color: '#64748b', fontWeight: '700', textAlign: 'center' },
+});
+
+// --- Helper to convert JSON array to CSV string ---
+const convertToCSV = (objArray: any[]) => {
+    if (!objArray || objArray.length === 0) return '';
+    const allHeadersSet = new Set<string>();
+    objArray.forEach(obj => Object.keys(obj).forEach(key => allHeadersSet.add(key)));
+    const headers = Array.from(allHeadersSet);
+    const csvRows = [headers.join(',')];
+    for (const row of objArray) {
+        const values = headers.map(header => {
+            const val = row[header] !== null && row[header] !== undefined ? String(row[header]) : '';
+            return `"${val.replace(/"/g, '""')}"`;
+        });
+        csvRows.push(values.join(','));
+    }
+    return csvRows.join('\n');
+};
+
+// ─── Quick Nav Tab Bar Component ───────────────────────────────
+function MaintenanceTopTabs({ activeKey, onTabPress }: {
+    activeKey: string;
+    onTabPress: (screen: string, tab?: string) => void;
+}) {
+    const tabs = [
+        { label: 'History Log', screen: 'TTTool', tab: 'equipment' },
+        { label: 'Infra Upgrade', screen: 'SiteMaintenanceTool', tab: 'infra' },
+        { label: 'SMPS', screen: 'SiteMaintenanceTool', tab: 'smps' },
+        { label: 'DCEM', screen: 'SiteMaintenanceTool', tab: 'dcem' },
+        { label: 'Repairs', screen: 'TTTool', tab: 'repairs' },
+        { label: 'Closure', screen: 'TTTool', tab: 'tickets' },
+    ];
+    return (
+        <View style={QS.bar}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={QS.scroll}>
+                {tabs.map(t => {
+                    const isActive = activeKey === t.tab;
+                    return (
+                        <TouchableOpacity key={t.tab}
+                            style={[QS.btn, isActive && QS.btnActive]}
+                            onPress={() => onTabPress(t.screen, t.tab)}>
+                            <Text style={[QS.txt, isActive && QS.txtActive]}>{t.label}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </ScrollView>
+        </View>
+    );
+}
+
+const QS = StyleSheet.create({
+    bar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#cbd5e1' },
+    scroll: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+    btn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1.5, borderColor: '#d0e4f7' },
+    btnActive: { backgroundColor: '#01497c', borderColor: '#01497c' },
+    txt: { fontSize: 11, fontWeight: '700', color: '#64748b' },
+    txtActive: { color: '#fff' },
+});
+
+// ─── MAIN ─────────────────────────────────────────────────────
+export default function SiteMaintenanceToolScreen({ navigation, route }: any) {
+
+    const initialTab: TabKey = (route?.params?.initialTab as TabKey) || 'infra';
+
+    const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+    const [toolData, setToolData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [search, setSearch] = useState('');
+    const [isSidebarVisible, setSidebarVisible] = useState(false);
+    const [fullname, setFullname] = useState('Administrator');
+
+    // Update tab when navigated from sidebar
+    useEffect(() => {
+        const t = (route?.params?.initialTab as TabKey) || 'infra';
+        setActiveTab(t);
+        setSearch('');
+    }, [route?.params?.initialTab]);
+
+    useEffect(() => {
+        AsyncStorage.getItem('user_fullname').then(n => { if (n) setFullname(n); });
+        fetchData();
+    }, []);
+
+    const fetchData = useCallback(async (isRefresh = false) => {
+        if (!isRefresh) setLoading(true);
+        try {
+            const res = await (api as any).getToolData();
+            if (res) setToolData(res);
+        } catch (e) {
+            console.log('SiteMaintenance fetch error:', e);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, []);
+
+    const onRefresh = () => { setRefreshing(true); fetchData(true); };
+
+    // Data — all equipment types
+    const battery: any[] = toolData?.equipment?.battery || [];
+    const dg: any[] = toolData?.equipment?.dg || [];
+    const ac: any[] = toolData?.equipment?.ac || [];
+    const allEquip = [...battery, ...dg, ...ac];
+
+    // Stats
+    const operational = allEquip.filter(e => e.status_class === 'operational').length;
+    const attention = allEquip.filter(e => e.status_class === 'attention').length;
+    const critical = allEquip.filter(e => e.status_class === 'critical').length;
+
+    // Search filter
+    const filtered = allEquip.filter(r =>
+        !search ||
+        r.site_id?.toLowerCase().includes(search.toLowerCase()) ||
+        r.equipment_type?.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Share
+    const handleShare = async () => {
+        if (!filtered.length) return;
+        setExporting(true);
+        try {
+            const csvString = convertToCSV(filtered);
+            const fileName = `Maintenance_${activeTab}_${new Date().getTime()}.csv`;
+            const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+            await RNFS.writeFile(filePath, csvString, 'utf8');
+            await Share.open({
+                title: `${TAB_INFO[activeTab].label} Export`,
+                url: `file://${filePath}`,
+                type: 'text/csv',
+                filename: fileName,
+                showAppsToView: true,
+            });
+        } catch (e: any) {
+            if (e?.message !== 'User did not share') {
+                Alert.alert("Export Error", "Failed to generate CSV");
+            }
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const tabColor = TAB_INFO[activeTab].color;
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <View style={{ flex: 1, alignSelf: 'center', width: '100%', maxWidth: 650 }}>
+
+            {/* Header */}
+            <AppHeader
+                title="SITE MAINTENANCE TOOL"
+                subtitle={TAB_INFO[activeTab].label}
+                leftAction="menu"
+                onLeftPress={() => setSidebarVisible(true)}
+                rightActions={[
+                    { icon: exporting ? 'loader' : 'download', onPress: handleShare },
+                    { icon: 'refresh-cw', onPress: onRefresh }
+                ]}
+            />
+
+            {/* Quick Navigation Tab Bar */}
+            <MaintenanceTopTabs
+                activeKey={activeTab}
+                onTabPress={(screen, tab) => {
+                    if (screen === 'SiteMaintenanceTool') {
+                        setActiveTab(tab as TabKey);
+                        setSearch('');
+                    } else {
+                        navigation.navigate(screen, { initialTab: tab });
+                    }
+                }}
+            />
+
+            {loading && !toolData ? (
+                <View style={styles.loaderBox}>
+                    <ActivityIndicator size="large" color="#01497c" />
+                    <Text style={styles.loaderTxt}>Loading data...</Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={filtered}
+                    keyExtractor={(item, i) => `${item.site_id}_${item.equipment_type}_${i}`}
+                    contentContainerStyle={{ padding: 12, paddingBottom: 30 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#01497c']} />}
+                    ListHeaderComponent={
+                        <View>
+                            {/* Stats */}
+                            <StatRow items={[
+                                { label: 'Operational', value: operational, color: '#10b981' },
+                                { label: 'Needs Attention', value: attention, color: '#f59e0b' },
+                                { label: 'Critical', value: critical, color: '#ef4444' },
+                                { label: 'Total Sites', value: allEquip.length, color: '#3b82f6' },
+                            ]} />
+
+                            {/* Search */}
+                             <View style={styles.searchWrap}>
+                                <AppIcon name="search" size={14} color="#94a3b8" />
+                                <TextInput
+                                    style={styles.searchInput}
+                                    placeholder="Search by site ID or equipment type..."
+                                    placeholderTextColor="#94a3b8"
+                                    value={search}
+                                    onChangeText={setSearch}
+                                />
+                                {!!search && (
+                                    <TouchableOpacity onPress={() => setSearch('')}>
+                                        <AppIcon name="x" size={14} color="#94a3b8" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
+                            {/* Section header */}
+                            <View style={styles.secRow}>
+                                <Text style={styles.secTitle}>
+                                    {TAB_INFO[activeTab].label} ({filtered.length})
+                                </Text>
+                                 <TouchableOpacity style={[styles.exportBtn, { backgroundColor: tabColor }]} onPress={handleShare}>
+                                    <AppIcon name={exporting ? 'loader' : 'download'} size={12} color="#fff" />
+                                    <Text style={styles.exportTxt}>Export</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    }
+                    renderItem={({ item }) =>
+                        activeTab === 'dcem'
+                            ? <DCEMCard item={item} />
+                            : <EquipCard item={item} />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.emptyBox}>
+                             <AppIcon name="inbox" size={36} color="#cbd5e1" />
+                             <Text style={styles.emptyTxt}>
+                                {search ? 'No items match your search' : 'No data available'}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
+
+            <Sidebar
+                isVisible={isSidebarVisible}
+                onClose={() => setSidebarVisible(false)}
+                navigation={navigation}
+                fullname={fullname}
+                activeRoute="SiteMaintenanceTool"
+                handleLogout={async () => {
+                    const { default: AsyncStorage } = await import('@react-native-async-storage/async-storage');
+                    await AsyncStorage.multiRemove(['userToken', 'djangoSession', 'user_id', 'role']);
+                    navigation.replace('Login');
+                }}
+            />
+            </View>
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#c5d4eeff' },
+    loaderBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    loaderTxt: { marginTop: 12, color: '#01497c', fontWeight: '600', fontSize: 13 },
+    tabBar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', maxHeight: 52 },
+    tabScroll: { paddingHorizontal: 12, paddingVertical: 8, gap: 8, alignItems: 'center' },
+    tabBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#f8fafc' },
+    tabTxt: { fontSize: 11, fontWeight: '700', color: '#64748b' },
+    searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10, elevation: 1, gap: 8 },
+    searchInput: { flex: 1, fontSize: 12, color: '#0f172a', fontWeight: '500' },
+    secRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    secTitle: { fontSize: 12, fontWeight: '800', color: '#0f172a' },
+    exportBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
+    exportTxt: { color: '#fff', fontWeight: '800', fontSize: 11 },
+    emptyBox: { alignItems: 'center', paddingTop: 40 },
+    emptyTxt: { color: '#94a3b8', fontSize: 13, marginTop: 12, fontWeight: '500', textAlign: 'center' },
+});
