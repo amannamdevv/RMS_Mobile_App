@@ -204,12 +204,12 @@ export default function DashboardScreen({ navigation }: Props) {
       let healthRes: any = null, vitalsRes: any = null, autoRes: any = null;
       let uptimeRes: any = null, smpsRes: any = null, rmsRes: any = null;
 
-      try { healthRes = await api.getSiteHealthCounts({}); } catch(e) { console.log('[ERR] healthRes:', e); }
-      try { vitalsRes = await api.getBatteryVitalsCounts({}); } catch(e) { console.log('[ERR] vitalsRes:', e); }
-      try { autoRes = await api.getAutomationStatus({}); } catch(e) { console.log('[ERR] autoRes:', e); }
-      try { uptimeRes = await api.getUptimeSummary({}); } catch(e) { console.log('[ERR] uptimeRes:', e); }
-      try { smpsRes = await api.getSmpsAlarms({}); } catch(e) { console.log('[ERR] smpsRes:', e); }
-      try { rmsRes = await api.getRmsAlarms({}); } catch(e) { console.log('[ERR] rmsRes:', e); }
+      try { healthRes = await api.getSiteHealthCounts({}); } catch (e) { console.log('[ERR] healthRes:', e); }
+      try { vitalsRes = await api.getBatteryVitalsCounts({}); } catch (e) { console.log('[ERR] vitalsRes:', e); }
+      try { autoRes = await api.getAutomationStatus({}); } catch (e) { console.log('[ERR] autoRes:', e); }
+      try { uptimeRes = await api.getUptimeSummary({}); } catch (e) { console.log('[ERR] uptimeRes:', e); }
+      try { smpsRes = await api.getSmpsAlarms({}); } catch (e) { console.log('[ERR] smpsRes:', e); }
+      try { rmsRes = await api.getRmsAlarms({}); } catch (e) { console.log('[ERR] rmsRes:', e); }
 
       // ── DEBUG: Print raw API responses ──
       console.log('=== DASHBOARD DEBUG ===');
@@ -246,7 +246,7 @@ export default function DashboardScreen({ navigation }: Props) {
       if (uptimeRes) {
         const upMain = uptimeRes.status === 'success' ? (uptimeRes.data || uptimeRes) : uptimeRes;
         const report = upMain.state_report || uptimeRes.state_report || [];
-        const summary = upMain.summary || uptimeRes.summary || upMain; 
+        const summary = upMain.summary || uptimeRes.summary || upMain;
         console.log('[uptimeKpi summary]', JSON.stringify(summary)?.slice(0, 300));
         console.log('[uptimeKpi report length]', report.length);
 
@@ -333,7 +333,7 @@ export default function DashboardScreen({ navigation }: Props) {
         title="DASHBOARD"
         leftAction="menu"
         onLeftPress={() => setSidebarVisible(true)}
-        rightActions={[{ icon: 'refresh-cw', onPress: fetchDashboardData }]}
+
       />
 
       <Sidebar

@@ -1,24 +1,4 @@
-/**
- * DCEMAnalyticsScreen.tsx
- *
- * Maps to: GET /api/dcem/analytics/
- *
- * Response envelope:
- * {
- *   meta: { from_date, to_date, total_records, total_energy_kwh,
- *           total_avg_current_a, total_avg_load_kw, total_avg_power_kw,
- *           tables_queried }
- *   sites: [ {
- *     imei, site_id, site_name, date_range, total_kwh,
- *     actual_operator_count, total_avgCurr, avg_load_per_site,
- *     total_kwh_consumed, site_avg_power, site_avg_current,
- *     num_operators, voltage,
- *     operator_consumptions: [{ operator, kwh, percentage, channels, technology }],
- *     tenant_consumptions:   [{ tenant, kwh, percentage }],
- *   } ]
- *   charts: { daily, operator, tenant }
- * }
- */
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -289,191 +269,192 @@ export default function DCEMAnalyticsScreen({ navigation }: any) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={{ flex: 1, alignSelf: 'center', width: '100%', maxWidth: 650 }}>
-            <AppHeader
-                title="DCEM ANALYTICS"
-                subtitle={`${fromDate} → ${toDate}`}
-                leftAction="menu"
-                onLeftPress={() => setSidebarVisible(true)}
-                rightActions={[
-                    { icon: exporting ? 'loader' : 'download', onPress: () => {
-                        const csv = convertToCSV(sites);
-                        if (!csv) return Alert.alert('No data', 'Nothing to download.');
-                        setExporting(true);
-                        const fileName = `DCEM_Analytics_${new Date().getTime()}.csv`;
-                        const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-                        RNFS.writeFile(filePath, csv, 'utf8')
-                            .then(() => Share.open({ url: `file://${filePath}`, type: 'text/csv' }))
-                            .catch(err => console.log('Export error:', err))
-                            .finally(() => setExporting(false));
-                    }},
-                    { icon: 'refresh-cw', onPress: onRefresh }
-                ]}
-            />
-
-            {loading && !data ? (
-                <View style={styles.loaderBox}>
-                    <ActivityIndicator size="large" color="#1e3c72" />
-                    <Text style={styles.loaderTxt}>Loading DCEM data...</Text>
-                </View>
-            ) : (
-                <FlatList
-                    data={sites}
-                    keyExtractor={(item, i) => `${item.imei || i}`}
-                    contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1e3c72']} />}
-                    ListHeaderComponent={
-                        <View>
-                            {/* View Mode Toggle */}
-                            <View style={styles.tabContainer}>
-                                <TouchableOpacity 
-                                    style={[styles.tabBtn, viewMode === 'custom' && styles.tabActive]} 
-                                    onPress={() => setViewMode('custom')}
-                                >
-                                    <Text style={[styles.tabTxt, viewMode === 'custom' && styles.tabTxtActive]}>Custom Range</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity 
-                                    style={[styles.tabBtn, viewMode === 'monthly' && styles.tabActive]} 
-                                    onPress={() => setViewMode('monthly')}
-                                >
-                                    <Text style={[styles.tabTxt, viewMode === 'monthly' && styles.tabTxtActive]}>Monthly Report</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Date filter row */}
-                            <View style={styles.dateRow}>
-                                {viewMode === 'custom' ? (
-                                    <>
-                                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-                        <DateRow label="FROM DATE" value={fromDate} onPress={() => setShowFromPicker(true)} />
-                        <DateRow label="TO DATE" value={toDate} onPress={() => setShowToPicker(true)} />
-                    </View>
-
-                    {showFromPicker && (
-                        <DateTimePicker
-                            value={new Date(fromDate)}
-                            mode="date"
-                            display="default"
-                            onChange={(e, d) => {
-                                setShowFromPicker(false);
-                                if (d) setFromDate(d.toISOString().split('T')[0]);
-                            }}
-                        />
-                    )}
-
-                    {showToPicker && (
-                        <DateTimePicker
-                            value={new Date(toDate)}
-                            mode="date"
-                            display="default"
-                            onChange={(e, d) => {
-                                setShowToPicker(false);
-                                if (d) setToDate(d.toISOString().split('T')[0]);
-                            }}
-                        />
-                    )}
-            </>
-                                ) : (
-                                    <>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={DRS.label}>Year</Text>
-                                            <TextInput 
-                                                style={DRS.input} 
-                                                value={selYear} 
-                                                onChangeText={setSelYear} 
-                                                keyboardType="numeric" 
-                                                maxLength={4} 
-                                            />
-                                        </View>
-                                        <View style={{ width: 10 }} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={DRS.label}>Month (01-12)</Text>
-                                            <TextInput 
-                                                style={DRS.input} 
-                                                value={selMonth} 
-                                                onChangeText={v => {
-                                                    setSelMonth(v);
-                                                    if (v.length === 2) setMonthRange(selYear, v);
-                                                }} 
-                                                keyboardType="numeric" 
-                                                maxLength={2} 
-                                            />
-                                        </View>
-                                    </>
-                                )}
-                                <TouchableOpacity 
-                                    style={styles.fetchBtn} 
-                                    onPress={() => {
-                                        if (viewMode === 'monthly') setMonthRange(selYear, selMonth);
-                                        fetchData();
-                                    }} 
-                                    activeOpacity={0.8}
-                                >
-                                    <AppIcon name="search" size={14} color="#fff" />
-                                    <Text style={styles.fetchBtnTxt}>Fetch</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Meta KPI scroll */}
-                            {data && (
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-                                    {metaKpis.map((k, i) => (
-                                        <MetaCard key={k.label} label={k.label} value={k.value} color={kpiColor(i)} />
-                                    ))}
-                                </ScrollView>
-                            )}
-
-                            {/* Search */}
-                            <View style={styles.searchRow}>
-                                <AppIcon name="search" size={14} color="#94a3b8" style={{ marginRight: 6 }} />
-                                <TextInput
-                                    style={styles.searchInput}
-                                    placeholder="Search by site name or IMEI..."
-                                    placeholderTextColor="#94a3b8"
-                                    value={search}
-                                    onChangeText={setSearch}
-                                />
-                                {!!search && (
-                                    <TouchableOpacity onPress={() => setSearch('')}>
-                                        <AppIcon name="x" size={14} color="#94a3b8" />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-
-                            {/* Count */}
-                            {data && (
-                                <Text style={styles.count}>{sites.length} SITES</Text>
-                            )}
-                        </View>
-                    }
-                    renderItem={({ item }) => (
-                        <SiteCard
-                            item={item}
-                        onPress={() => navigation.navigate('DCEMMonthlyReport', { imei: item.imei, showBack: true })}
-                        />
-                    )}
-                    ListEmptyComponent={
-                        <View style={{ alignItems: 'center', paddingTop: 60 }}>
-                            <AppIcon name="inbox" size={38} color="#cbd5e1" />
-                            <Text style={{ color: '#94a3b8', fontSize: 16, marginTop: 12, fontWeight: '500' }}>
-                                {data ? 'No sites found' : 'Fetch data to begin'}
-                            </Text>
-                        </View>
-                    }
+                <AppHeader
+                    title="DCEM ANALYTICS"
+                    subtitle={`${fromDate} → ${toDate}`}
+                    leftAction="menu"
+                    onLeftPress={() => setSidebarVisible(true)}
+                    rightActions={[
+                        {
+                            icon: exporting ? 'loader' : 'download', onPress: () => {
+                                const csv = convertToCSV(sites);
+                                if (!csv) return Alert.alert('No data', 'Nothing to download.');
+                                setExporting(true);
+                                const fileName = `DCEM_Analytics_${new Date().getTime()}.csv`;
+                                const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+                                RNFS.writeFile(filePath, csv, 'utf8')
+                                    .then(() => Share.open({ url: `file://${filePath}`, type: 'text/csv' }))
+                                    .catch(err => console.log('Export error:', err))
+                                    .finally(() => setExporting(false));
+                            }
+                        }
+                    ]}
                 />
-            )}
 
-            <Sidebar
-                isVisible={isSidebarVisible}
-                onClose={() => setSidebarVisible(false)}
-                navigation={navigation}
-                fullname={fullname}
-                activeRoute="DCEMAnalytics"
-                handleLogout={async () => {
-                    await AsyncStorage.multiRemove(['userToken', 'djangoSession', 'user_id', 'role']);
-                    navigation.replace('Login');
-                }}
-            />
+                {loading && !data ? (
+                    <View style={styles.loaderBox}>
+                        <ActivityIndicator size="large" color="#1e3c72" />
+                        <Text style={styles.loaderTxt}>Loading DCEM data...</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={sites}
+                        keyExtractor={(item, i) => `${item.imei || i}`}
+                        contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1e3c72']} />}
+                        ListHeaderComponent={
+                            <View>
+                                {/* View Mode Toggle */}
+                                <View style={styles.tabContainer}>
+                                    <TouchableOpacity
+                                        style={[styles.tabBtn, viewMode === 'custom' && styles.tabActive]}
+                                        onPress={() => setViewMode('custom')}
+                                    >
+                                        <Text style={[styles.tabTxt, viewMode === 'custom' && styles.tabTxtActive]}>Custom Range</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.tabBtn, viewMode === 'monthly' && styles.tabActive]}
+                                        onPress={() => setViewMode('monthly')}
+                                    >
+                                        <Text style={[styles.tabTxt, viewMode === 'monthly' && styles.tabTxtActive]}>Monthly Report</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Date filter row */}
+                                <View style={styles.dateRow}>
+                                    <View style={{ flex: 1, flexDirection: 'row', gap: 10 }}>
+                                        {viewMode === 'custom' ? (
+                                            <>
+                                                <DateRow label="FROM DATE" value={fromDate} onPress={() => setShowFromPicker(true)} />
+                                                <DateRow label="TO DATE" value={toDate} onPress={() => setShowToPicker(true)} />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={DRS.label}>Year</Text>
+                                                    <TextInput
+                                                        style={DRS.input}
+                                                        value={selYear}
+                                                        onChangeText={setSelYear}
+                                                        keyboardType="numeric"
+                                                        maxLength={4}
+                                                    />
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={DRS.label}>Month (01-12)</Text>
+                                                    <TextInput
+                                                        style={DRS.input}
+                                                        value={selMonth}
+                                                        onChangeText={v => {
+                                                            setSelMonth(v);
+                                                            if (v.length === 2) setMonthRange(selYear, v);
+                                                        }}
+                                                        keyboardType="numeric"
+                                                        maxLength={2}
+                                                    />
+                                                </View>
+                                            </>
+                                        )}
+                                    </View>
+
+                                    <TouchableOpacity
+                                        style={styles.fetchBtn}
+                                        onPress={() => {
+                                            if (viewMode === 'monthly') setMonthRange(selYear, selMonth);
+                                            fetchData();
+                                        }}
+                                        activeOpacity={0.8}
+                                    >
+                                        <AppIcon name="search" size={14} color="#fff" />
+                                        <Text style={styles.fetchBtnTxt}>Fetch</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {showFromPicker && (
+                                    <DateTimePicker
+                                        value={new Date(fromDate)}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(e, d) => {
+                                            setShowFromPicker(false);
+                                            if (d) setFromDate(d.toISOString().split('T')[0]);
+                                        }}
+                                    />
+                                )}
+
+                                {showToPicker && (
+                                    <DateTimePicker
+                                        value={new Date(toDate)}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(e, d) => {
+                                            setShowToPicker(false);
+                                            if (d) setToDate(d.toISOString().split('T')[0]);
+                                        }}
+                                    />
+                                )}
+
+                                {/* Meta KPI scroll */}
+                                {data && (
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+                                        {metaKpis.map((k, i) => (
+                                            <MetaCard key={k.label} label={k.label} value={k.value} color={kpiColor(i)} />
+                                        ))}
+                                    </ScrollView>
+                                )}
+
+                                {/* Search */}
+                                <View style={styles.searchRow}>
+                                    <AppIcon name="search" size={14} color="#94a3b8" style={{ marginRight: 6 }} />
+                                    <TextInput
+                                        style={styles.searchInput}
+                                        placeholder="Search by site name or IMEI..."
+                                        placeholderTextColor="#94a3b8"
+                                        value={search}
+                                        onChangeText={setSearch}
+                                    />
+                                    {!!search && (
+                                        <TouchableOpacity onPress={() => setSearch('')}>
+                                            <AppIcon name="x" size={14} color="#94a3b8" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+
+                                {/* Count */}
+                                {data && (
+                                    <Text style={styles.count}>{sites.length} SITES</Text>
+                                )}
+                            </View>
+                        }
+                        renderItem={({ item }) => (
+                            <SiteCard
+                                item={item}
+                                onPress={() => navigation.navigate('DCEMMonthlyReport', { imei: item.imei, showBack: true })}
+                            />
+                        )}
+                        ListEmptyComponent={
+                            <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                                <AppIcon name="inbox" size={38} color="#cbd5e1" />
+                                <Text style={{ color: '#94a3b8', fontSize: 16, marginTop: 12, fontWeight: '500' }}>
+                                    {data ? 'No sites found' : 'Fetch data to begin'}
+                                </Text>
+                            </View>
+                        }
+                    />
+                )}
+
+                <Sidebar
+                    isVisible={isSidebarVisible}
+                    onClose={() => setSidebarVisible(false)}
+                    navigation={navigation}
+                    fullname={fullname}
+                    activeRoute="DCEMAnalytics"
+                    handleLogout={async () => {
+                        await AsyncStorage.multiRemove(['userToken', 'djangoSession', 'user_id', 'role']);
+                        navigation.replace('Login');
+                    }}
+                />
             </View>
         </SafeAreaView>
     );

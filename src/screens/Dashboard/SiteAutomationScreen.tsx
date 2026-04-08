@@ -53,7 +53,7 @@ export default function SiteAutomationScreen({ navigation }: any) {
     const filteredData = useMemo(() => {
         if (!searchQuery) return data;
         const q = searchQuery.toLowerCase();
-        return data.filter(s => 
+        return data.filter((s: any) => 
             (s.site_name || '').toLowerCase().includes(q) ||
             (s.site_id || '').toLowerCase().includes(q) ||
             (s.global_id || '').toLowerCase().includes(q)
@@ -313,15 +313,21 @@ const styles = StyleSheet.create({
 
     searchContainer: { 
         backgroundColor: '#fff', 
-        paddingHorizontal: 16, 
-        paddingVertical: 10, 
+        paddingHorizontal: 14, 
+        paddingVertical: 6, 
         flexDirection: 'row', 
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9'
+        marginHorizontal: 14,
+        marginVertical: 10,
+        borderRadius: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     searchIcon: { marginRight: 10 },
-    searchInput: { flex: 1, fontSize: 13, color: '#1e293b', height: 40, padding: 0 },
+    searchInput: { flex: 1, fontSize: 13, color: '#1e293b', height: 38, padding: 0, fontWeight: '500' },
 
     emptyContainer: { alignItems: 'center', marginTop: 50 },
     emptyTextMain: { fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 12 },

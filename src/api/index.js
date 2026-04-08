@@ -44,7 +44,7 @@ const attachDjangoAuth = async (config) => {
 
 const djangoApi = axios.create({ 
   baseURL: DJANGO_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 60000, // 60 seconds
   withCredentials: true 
 });
 djangoApi.interceptors.request.use(attachDjangoAuth, (error) => Promise.reject(error));

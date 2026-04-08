@@ -325,8 +325,7 @@ export default function SiteMaintenanceToolScreen({ navigation, route }: any) {
                 leftAction="menu"
                 onLeftPress={() => setSidebarVisible(true)}
                 rightActions={[
-                    { icon: exporting ? 'loader' : 'download', onPress: handleShare },
-                    { icon: 'refresh-cw', onPress: onRefresh }
+                    { icon: exporting ? 'loader' : 'download', onPress: handleShare }
                 ]}
             />
 
@@ -387,10 +386,7 @@ export default function SiteMaintenanceToolScreen({ navigation, route }: any) {
                                 <Text style={styles.secTitle}>
                                     {TAB_INFO[activeTab].label} ({filtered.length})
                                 </Text>
-                                 <TouchableOpacity style={[styles.exportBtn, { backgroundColor: tabColor }]} onPress={handleShare}>
-                                    <AppIcon name={exporting ? 'loader' : 'download'} size={12} color="#fff" />
-                                    <Text style={styles.exportTxt}>Export</Text>
-                                </TouchableOpacity>
+
                             </View>
                         </View>
                     }

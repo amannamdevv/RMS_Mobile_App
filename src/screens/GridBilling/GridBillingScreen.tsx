@@ -232,7 +232,7 @@ const DP = StyleSheet.create({
 });
 
 // ─── OVERVIEW TAB ─────────────────────────────────────────────
-function OverviewTab({ data }: { data: any }) {
+function OverviewTab({ data, refreshing, onRefresh }: { data: any, refreshing: boolean, onRefresh: () => void }) {
     if (!data) return null;
     const kpis = data.kpis || {};
     const ov = data.overview || {};
@@ -241,7 +241,11 @@ function OverviewTab({ data }: { data: any }) {
     const tech = data.technology_distribution || { labels: [], values: [] };
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 14, paddingBottom: 30 }}>
+        <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#5da3fa']} />}
+        >
             {/* KPIs */}
             <View style={{ flexDirection: 'row', marginBottom: 14 }}>
                 <KpiCard label="AC Uptime" value={`${kpis.ac_uptime || 0}%`} icon="zap" color="#5da3fa" />
@@ -278,7 +282,7 @@ function OverviewTab({ data }: { data: any }) {
 }
 
 // ─── QUALITY TAB ──────────────────────────────────────────────
-function QualityTab({ data, searchQuery }: { data: any, searchQuery: string }) {
+function QualityTab({ data, searchQuery, refreshing, onRefresh }: { data: any, searchQuery: string, refreshing: boolean, onRefresh: () => void }) {
     if (!data) return null;
     const q = data.quality_of_supply || {};
     const originalSiteData = q.site_data || [];
@@ -304,7 +308,11 @@ function QualityTab({ data, searchQuery }: { data: any, searchQuery: string }) {
     }, [originalAlerts, searchQuery]);
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 14, paddingBottom: 30 }}>
+        <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#5da3fa']} />}
+        >
 
             {/* R-Y-B Voltage Trend */}
             <SectionCard title="R-Y-B Phase Voltage Trend">
@@ -388,7 +396,7 @@ const QTS = StyleSheet.create({
 });
 
 // ─── TOD TAB ──────────────────────────────────────────────────
-function TODTab({ data, searchQuery }: { data: any, searchQuery: string }) {
+function TODTab({ data, searchQuery, refreshing, onRefresh }: { data: any, searchQuery: string, refreshing: boolean, onRefresh: () => void }) {
     const [abnTab, setAbnTab] = useState<'spike' | 'offhours' | 'weekly'>('spike');
     if (!data) return null;
 
@@ -418,7 +426,11 @@ function TODTab({ data, searchQuery }: { data: any, searchQuery: string }) {
     const weeklyFiltered = filterAbn(abn.weekly_alerts);
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 14, paddingBottom: 30 }}>
+        <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#5da3fa']} />}
+        >
 
             {/* TOD by site */}
             {filteredBySiteKeys.length > 0 && (
@@ -638,11 +650,12 @@ export default function GridBillingScreen({ navigation }: any) {
     const [fullname, setFullname] = useState('Administrator');
     const [exporting, setExporting] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // Filter state
     const [filters, setFilters] = useState({
         date_from: daysAgoStr(30),
-        date_to: todayStr(),
+        date_to: daysAgoStr(1),
         state_id: '',
         dist_id: '',
         site_id: '',
@@ -661,17 +674,32 @@ export default function GridBillingScreen({ navigation }: any) {
 
     const fetchData = useCallback(async (isRefresh = false, customFilters?: any) => {
         if (!isRefresh) setLoading(true);
+        setErrorMsg(null);
         const params = customFilters || filters;
         try {
+            console.log('[GridBilling] Fetching with params:', params);
             const res = await (api as any).getGridAnalytics(params);
-            if (res?.status === 'success') {
+            console.log('[GridBilling] Response received:', res ? 'Data found' : 'Empty');
+            
+            if (res && (res.status === 'success' || res.overview)) {
                 setData(res);
                 if (res.states_list) setStates(res.states_list);
                 if (res.districts_list) setDistricts(res.districts_list);
                 if (res.sites_list) setSites(res.sites_list);
+            } else if (res && res.status === 'error') {
+                setErrorMsg(res.message || 'Server reported an error');
+            } else {
+                setErrorMsg('Invalid data format received from server');
             }
-        } catch (e) {
+        } catch (e: any) {
             console.log('GridBilling fetch error:', e);
+            let msg = e.message || 'Failed to connect to server';
+            if (msg.toLowerCase().includes('network error')) {
+                msg = 'Network Error: The data might be too large for this range, or your connection is unstable. Try a shorter date range (e.g., 7 days).';
+            } else if (msg.toLowerCase().includes('timeout')) {
+                msg = 'Request Timed Out: The server is taking too long. Please try a smaller date range.';
+            }
+            setErrorMsg(msg);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -759,7 +787,7 @@ export default function GridBillingScreen({ navigation }: any) {
                 ))}
             </View>
 
-            {data && (activeTab === 'Quality' || activeTab === 'TOD') && (
+            {(activeTab === 'Quality' || activeTab === 'TOD') && (
                 <View style={styles.searchContainer}>
                     <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
                     <TextInput
@@ -782,16 +810,34 @@ export default function GridBillingScreen({ navigation }: any) {
                     <ActivityIndicator size="large" color="#5da3fa" />
                     <Text style={styles.loaderTxt}>Loading grid analytics...</Text>
                 </View>
+            ) : errorMsg ? (
+                <View style={styles.emptyBox}>
+                    <AppIcon name="alert-triangle" size={40} color="#ef4444" />
+                    <Text style={[styles.emptyTxtMain, { color: '#ef4444' }]}>Error Loading Data</Text>
+                    <Text style={styles.emptyTxtSub}>{errorMsg}</Text>
+                    <TouchableOpacity style={[styles.retryBtn, { backgroundColor: '#ef4444' }]} onPress={() => fetchData()}>
+                        <Text style={styles.retryTxt}>Try Again</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : !data ? (
+                <View style={styles.emptyBox}>
+                    <AppIcon name="database" size={40} color="#cbd5e1" />
+                    <Text style={styles.emptyTxtMain}>No Analytics Data</Text>
+                    <Text style={styles.emptyTxtSub}>We couldn't find any data for the selected filters. Try adjusting your dates or filters.</Text>
+                    <TouchableOpacity style={styles.retryBtn} onPress={() => fetchData()}>
+                        <Text style={styles.retryTxt}>Refresh Data</Text>
+                    </TouchableOpacity>
+                </View>
             ) : (
                 <View style={{ flex: 1, backgroundColor: '#edf2fb' }}>
                     {activeTab === 'Overview' && (
-                        <OverviewTab data={data} />
+                        <OverviewTab data={data} refreshing={refreshing} onRefresh={onRefresh} />
                     )}
                     {activeTab === 'Quality' && (
-                        <QualityTab data={data} searchQuery={searchQuery} />
+                        <QualityTab data={data} searchQuery={searchQuery} refreshing={refreshing} onRefresh={onRefresh} />
                     )}
                     {activeTab === 'TOD' && (
-                        <TODTab data={data} searchQuery={searchQuery} />
+                        <TODTab data={data} searchQuery={searchQuery} refreshing={refreshing} onRefresh={onRefresh} />
                     )}
                 </View>
             )}
@@ -836,15 +882,25 @@ const styles = StyleSheet.create({
 
     searchContainer: { 
         backgroundColor: '#fff', 
-        paddingHorizontal: 16, 
-        paddingVertical: 10, 
-        marginHorizontal: 15,
-        marginTop: 15,
-        borderRadius: 15,
+        paddingHorizontal: 14, 
+        paddingVertical: 6, 
         flexDirection: 'row', 
         alignItems: 'center',
-        elevation: 2
+        marginHorizontal: 16,
+        marginVertical: 10,
+        borderRadius: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     searchIcon: { marginRight: 10 },
-    searchInput: { flex: 1, fontSize: 13, color: '#1c3d5a', height: 40, padding: 0 },
+    searchInput: { flex: 1, fontSize: 13, color: '#1e293b', height: 38, padding: 0, fontWeight: '500' },
+
+    emptyBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, backgroundColor: '#edf2fb' },
+    emptyTxtMain: { fontSize: 18, fontWeight: '800', color: '#1e293b', marginTop: 12 },
+    emptyTxtSub: { fontSize: 13, color: '#64748b', textAlign: 'center', marginTop: 8, lineHeight: 20 },
+    retryBtn: { marginTop: 20, backgroundColor: '#5da3fa', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10 },
+    retryTxt: { color: '#fff', fontWeight: '800', fontSize: 14 },
 });

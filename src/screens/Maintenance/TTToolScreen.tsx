@@ -518,8 +518,7 @@ export default function TTToolScreen({ navigation, route }: any) {
                 leftAction="menu"
                 onLeftPress={() => setSidebarVisible(true)}
                 rightActions={[
-                    { icon: exporting ? 'loader' : 'download', onPress: handleShare },
-                    { icon: 'refresh-cw', onPress: onRefresh }
+                    { icon: exporting ? 'loader' : 'download', onPress: handleShare }
                 ]}
             />
 

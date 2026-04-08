@@ -247,7 +247,7 @@ function DGScreen({ data, refreshing, onRefresh, searchQuery }: ScreenProps) {
         const all = data?.categories?.all_sites || [];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter((s: any) => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
     }, [data, searchQuery]);
 
     const summItems = [
@@ -480,7 +480,7 @@ function LightningScreen({ data, refreshing, onRefresh, searchQuery }: ScreenPro
         const all = data?.categories?.la_needs_check || [];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter((s: any) => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
     }, [data, searchQuery]);
 
     const summItems = [
@@ -676,7 +676,7 @@ export default function AssetHealthScreen({ navigation, route }: any) {
                     )}
                 </View>
 
-                <View style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
+                <View style={{ flex: 1 }}>
                     {renderScreen()}
                 </View>
 
@@ -705,13 +705,19 @@ const MS = StyleSheet.create({
     tabTxtOn: { color: '#1e3c72' },
     searchContainer: { 
         backgroundColor: '#fff', 
-        paddingHorizontal: 16, 
-        paddingVertical: 10, 
+        paddingHorizontal: 14, 
+        paddingVertical: 6, 
         flexDirection: 'row', 
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9'
+        marginHorizontal: 14,
+        marginVertical: 10,
+        borderRadius: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     searchIcon: { marginRight: 10 },
-    searchInput: { flex: 1, fontSize: 13, color: '#1e293b', height: 40, padding: 0 },
+    searchInput: { flex: 1, fontSize: 13, color: '#1e293b', height: 38, padding: 0, fontWeight: '500' },
 });

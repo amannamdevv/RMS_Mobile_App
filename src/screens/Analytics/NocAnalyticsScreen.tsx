@@ -348,19 +348,19 @@ export default function NocAnalytics({ navigation }: any) {
         datasets: [{ data: [kpis.open, kpis.closed] as number[] }],
     }), [kpis]);
 
-    const topAlarmsData = useMemo(() => {
+    const topAlarms = useMemo(() => {
         const counts: Record<string, number> = {};
         allAlarms.forEach(a => {
-            // Use same getAlarmDisplayName as website, take first alarm name
             const name = getAlarmDisplayName(a).split(',')[0].trim() || 'Unknown';
             counts[name] = (counts[name] || 0) + 1;
         });
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        return {
-            labels: sorted.map(e => e[0].length > 8 ? e[0].substring(0, 8) + '..' : e[0]),
-            datasets: [{ data: sorted.map(e => e[1]) as number[] }],
-        };
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     }, [allAlarms]);
+
+    const topAlarmsData = useMemo(() => ({
+        labels: topAlarms.map(e => e[0].length > 8 ? e[0].substring(0, 8) + '..' : e[0]),
+        datasets: [{ data: topAlarms.map(e => e[1]) as number[] }],
+    }), [topAlarms]);
 
     // ── Stat Card ──────────────────────────────────────────────
     const renderStatCard = (
@@ -459,162 +459,7 @@ export default function NocAnalytics({ navigation }: any) {
         );
     };
 
-    // ── List Header (KPIs + Charts + Filter) ──────────────────
-    const ListHeader = () => {
-        const topAlarms = useMemo(() => {
-            const counts: Record<string, number> = {};
-            allAlarms.forEach(a => {
-                const name = getAlarmDisplayName(a).split(',')[0].trim() || 'Unknown';
-                counts[name] = (counts[name] || 0) + 1;
-            });
-            return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        }, [allAlarms]);
 
-        return (
-            <View style={{ backgroundColor: '#f1f5f9' }}>
-                {/* KPI Cards */}
-                <View style={styles.kpiWrapper}>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.kpiScroll}
-                    >
-                        {renderStatCard('Total', kpis.total, '#3b82f6', 'bell', 'all')}
-                        {renderStatCard('Major', kpis.major, '#f59e0b', 'alert-triangle', 'major')}
-                        {renderStatCard('Minor', kpis.minor, '#3b82f6', 'info', 'minor')}
-                        {renderStatCard('Active', kpis.open, '#ef4444', 'activity', 'open')}
-                        {renderStatCard('Closed', kpis.closed, '#10b981', 'check-circle', 'closed')}
-                    </ScrollView>
-                </View>
-
-                {/* Charts */}
-                <View style={styles.chartsSection}>
-                    {/* Severity Pie */}
-                    <View style={styles.chartCard}>
-                        <Text style={styles.chartTitle}>SEVERITY DISTRIBUTION</Text>
-                        {(kpis.major + kpis.minor) > 0 ? (
-                            <PieChart
-                                data={severityChartData}
-                                width={screenWidth - 32}
-                                height={180}
-                                chartConfig={{ color: (opacity = 1) => `rgba(0,0,0,${opacity})` }}
-                                accessor="population"
-                                backgroundColor="transparent"
-                                paddingLeft="15"
-                                center={[10, 0]}
-                                absolute
-                            />
-                        ) : (
-                            <View style={styles.noDataBox}>
-                                <Text style={styles.noDataText}>No data</Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Open vs Closed + Top Alarms side by side */}
-                    <View style={styles.chartRow}>
-                        <View style={[styles.chartCard, styles.chartHalf]}>
-                            <Text style={styles.chartTitleSm}>OPEN vs CLOSED</Text>
-                            {(kpis.open + kpis.closed) > 0 ? (
-                                <BarChart
-                                    data={openClosedData}
-                                    width={(screenWidth - 52) / 2}
-                                    height={140}
-                                    yAxisLabel="" yAxisSuffix=""
-                                    chartConfig={chartConfigSmall('#ef4444')}
-                                    fromZero
-                                    showValuesOnTopOfBars
-                                    style={{ marginLeft: -16 }}
-                                />
-                            ) : (
-                                <View style={styles.noDataBox}>
-                                    <Text style={styles.noDataText}>No data</Text>
-                                </View>
-                            )}
-                        </View>
-                        <View style={[styles.chartCard, styles.chartHalf]}>
-                            <Text style={styles.chartTitleSm}>TOP ALARM TYPES</Text>
-                            {topAlarmsData.datasets[0].data.length > 0 ? (
-                                <BarChart
-                                    data={topAlarmsData}
-                                    width={(screenWidth - 52) / 2}
-                                    height={140}
-                                    yAxisLabel="" yAxisSuffix=""
-                                    chartConfig={chartConfigSmall('#3b82f6')}
-                                    fromZero
-                                    showValuesOnTopOfBars
-                                    style={{ marginLeft: -16 }}
-                                />
-                            ) : (
-                                <View style={styles.noDataBox}>
-                                    <Text style={styles.noDataText}>No data</Text>
-                                </View>
-                            )}
-                        </View>
-                    </View>
-
-                    {/* Legend for Top Alarms Type */}
-                    {topAlarms.length > 0 && (
-                        <View style={[styles.chartCard, { marginTop: -4, paddingBottom: 8 }]}>
-                            <Text style={[styles.chartTitle, { fontSize: 10, color: '#64748b' }]}>TOP 5 ALARM DETAILS</Text>
-                            {topAlarms.map(([name, count], i) => (
-                                <View key={name} style={styles.legendRow}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#3b82f6' }]} />
-                                    <Text style={styles.legendName} numberOfLines={1}>{name}</Text>
-                                    <Text style={styles.legendCount}>{count}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                </View>
-
-                {/* Search Row */}
-                <View style={styles.searchWrap}>
-                    <Icon name="search" size={14} color="#94a3b8" />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search site name, ID, alarm..."
-                        placeholderTextColor="#94a3b8"
-                        value={search}
-                        onChangeText={setSearch}
-                    />
-                    {!!search && (
-                        <TouchableOpacity onPress={() => setSearch('')}>
-                            <Icon name="x" size={14} color="#94a3b8" />
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {/* Filter Row */}
-                <View style={styles.filterRow}>
-                    <Text style={styles.incidentCount}>
-                        INCIDENTS ({filteredAlarms.length})
-                    </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View style={styles.filterBtns}>
-                            {(['all', 'major', 'minor', 'open', 'closed'] as const).map(f => (
-                                <TouchableOpacity
-                                    key={f}
-                                    onPress={() => setSeverityFilter(f)}
-                                    style={[
-                                        styles.filterBtn,
-                                        severityFilter === f && styles.filterBtnActive,
-                                    ]}
-                                >
-                                    <Text style={[
-                                        styles.filterBtnText,
-                                        severityFilter === f && styles.filterBtnTextActive,
-                                    ]}>
-                                        {f.toUpperCase()}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    };
 
     if (loading && !refreshing) {
         return (
@@ -642,7 +487,150 @@ export default function NocAnalytics({ navigation }: any) {
                 data={filteredAlarms}
                 keyExtractor={(item, i) => `${item.alarm_id || item.id || i}`}
                 renderItem={renderIncidentItem}
-                ListHeaderComponent={ListHeader}
+                ListHeaderComponent={
+                    <View style={{ backgroundColor: '#f1f5f9' }}>
+                        {/* KPI Cards */}
+                        <View style={styles.kpiWrapper}>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.kpiScroll}
+                            >
+                                {renderStatCard('Total', kpis.total, '#3b82f6', 'bell', 'all')}
+                                {renderStatCard('Major', kpis.major, '#f59e0b', 'alert-triangle', 'major')}
+                                {renderStatCard('Minor', kpis.minor, '#3b82f6', 'info', 'minor')}
+                                {renderStatCard('Active', kpis.open, '#ef4444', 'activity', 'open')}
+                                {renderStatCard('Closed', kpis.closed, '#10b981', 'check-circle', 'closed')}
+                            </ScrollView>
+                        </View>
+
+                        {/* Charts */}
+                        <View style={styles.chartsSection}>
+                            {/* Severity Pie */}
+                            <View style={styles.chartCard}>
+                                <Text style={styles.chartTitle}>SEVERITY DISTRIBUTION</Text>
+                                {(kpis.major + kpis.minor) > 0 ? (
+                                    <PieChart
+                                        data={severityChartData}
+                                        width={screenWidth - 32}
+                                        height={180}
+                                        chartConfig={{ color: (opacity = 1) => `rgba(0,0,0,${opacity})` }}
+                                        accessor="population"
+                                        backgroundColor="transparent"
+                                        paddingLeft="15"
+                                        center={[10, 0]}
+                                        absolute
+                                    />
+                                ) : (
+                                    <View style={styles.noDataBox}>
+                                        <Text style={styles.noDataText}>No data</Text>
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Open vs Closed + Top Alarms side by side */}
+                            <View style={styles.chartRow}>
+                                <View style={[styles.chartCard, styles.chartHalf]}>
+                                    <Text style={styles.chartTitleSm}>OPEN vs CLOSED</Text>
+                                    {(kpis.open + kpis.closed) > 0 ? (
+                                        <BarChart
+                                            data={openClosedData}
+                                            width={(screenWidth - 52) / 2}
+                                            height={140}
+                                            yAxisLabel="" yAxisSuffix=""
+                                            chartConfig={chartConfigSmall('#ef4444')}
+                                            fromZero
+                                            showValuesOnTopOfBars
+                                            style={{ marginLeft: -16 }}
+                                        />
+                                    ) : (
+                                        <View style={styles.noDataBox}>
+                                            <Text style={styles.noDataText}>No data</Text>
+                                        </View>
+                                    )}
+                                </View>
+                                <View style={[styles.chartCard, styles.chartHalf]}>
+                                    <Text style={styles.chartTitleSm}>TOP ALARM TYPES</Text>
+                                    {topAlarmsData.datasets[0].data.length > 0 ? (
+                                        <BarChart
+                                            data={topAlarmsData}
+                                            width={(screenWidth - 52) / 2}
+                                            height={140}
+                                            yAxisLabel="" yAxisSuffix=""
+                                            chartConfig={chartConfigSmall('#3b82f6')}
+                                            fromZero
+                                            showValuesOnTopOfBars
+                                            style={{ marginLeft: -16 }}
+                                        />
+                                    ) : (
+                                        <View style={styles.noDataBox}>
+                                            <Text style={styles.noDataText}>No data</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Legend for Top Alarms Type */}
+                            {topAlarms.length > 0 && (
+                                <View style={[styles.chartCard, { marginTop: -4, paddingBottom: 8 }]}>
+                                    <Text style={[styles.chartTitle, { fontSize: 10, color: '#64748b' }]}>TOP 5 ALARM DETAILS</Text>
+                                    {topAlarms.map(([name, count], i) => (
+                                        <View key={name} style={styles.legendRow}>
+                                            <View style={[styles.legendDot, { backgroundColor: '#3b82f6' }]} />
+                                            <Text style={styles.legendName} numberOfLines={1}>{name}</Text>
+                                            <Text style={styles.legendCount}>{count}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Search Row */}
+                        <View style={styles.searchWrap}>
+                            <Icon name="search" size={14} color="#94a3b8" />
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder="Search site name, ID, alarm..."
+                                placeholderTextColor="#94a3b8"
+                                value={search}
+                                onChangeText={setSearch}
+                            />
+                            {!!search && (
+                                <TouchableOpacity onPress={() => setSearch('')}>
+                                    <Icon name="x" size={14} color="#94a3b8" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
+                        {/* Filter Row */}
+                        <View style={styles.filterRow}>
+                            <Text style={styles.incidentCount}>
+                                INCIDENTS ({filteredAlarms.length})
+                            </Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <View style={styles.filterBtns}>
+                                    {(['all', 'major', 'minor', 'open', 'closed'] as const).map(f => (
+                                        <TouchableOpacity
+                                            key={f}
+                                            onPress={() => setSeverityFilter(f)}
+                                            style={[
+                                                styles.filterBtn,
+                                                severityFilter === f && styles.filterBtnActive,
+                                            ]}
+                                        >
+                                            <Text style={[
+                                                styles.filterBtnText,
+                                                severityFilter === f && styles.filterBtnTextActive,
+                                            ]}>
+                                                {f.toUpperCase()}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </ScrollView>
+                        </View>
+                    </View>
+                }
                 contentContainerStyle={{ paddingBottom: 24 }}
                 refreshControl={
                     <RefreshControl
