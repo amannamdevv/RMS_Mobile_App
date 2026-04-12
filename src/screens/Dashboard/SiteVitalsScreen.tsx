@@ -146,7 +146,7 @@ export default function SiteVitalsScreen({ route, navigation }: Props) {
                 <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.siteName}>{item.site_name || 'Unnamed Site'}</Text>
-                        <Text style={styles.subText}>ID: {item.site_id} | {item.imei}</Text>
+                        <Text style={styles.subText}>Global ID: {item.global_id || item.site_id || '—'}  ·  IMEI: {item.imei}</Text>
                     </View>
                     <View style={[styles.voltageBox, { backgroundColor: vStyle.color + '15' }]}>
                         <Text style={[styles.voltageText, { color: vStyle.color }]}>{vStyle.label}</Text>

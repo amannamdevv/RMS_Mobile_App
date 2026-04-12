@@ -17,13 +17,13 @@ import NonCommSitesScreen from './src/screens/Home/NonCommSitesScreen';
 import SiteRunningStatusScreen from './src/screens/Home/SiteRunningStatusScreen';
 import SiteRunHoursDetailScreen from './src/screens/Home/SiteRunHoursDetailScreen';
 import BackupUsageScreen from './src/screens/Home/BackupUsageScreen';
-import SiteDistributionScreen from './src/screens/Home/SiteDistributionScreen';
-import SiteTypeDetailsScreen from './src/screens/Home/SiteTypeDetailsScreen';
+import SiteDistributionScreen from './src/screens/Dashboard/SiteDistributionScreen';
+import SiteTypeDetailsScreen from './src/screens/Dashboard/SiteTypeDetailsScreen';
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen';
 import SiteHealthScreen from './src/screens/Dashboard/SiteHealthScreen';
 import SiteVitalsScreen from './src/screens/Dashboard/SiteVitalsScreen';
 import SiteAutomationScreen from './src/screens/Dashboard/SiteAutomationScreen';
-import LiveAlarmsScreen from './src/screens/Dashboard/LiveAlarmsScreen';
+import LiveAlarmsScreen from './src/screens/Home/LiveAlarmsScreen';
 import UptimeDetailsScreen from './src/screens/Dashboard/UptimeDetailsScreen';
 import UptimeReportScreen from './src/screens/Dashboard/UptimeReportScreen';
 // Energy Management

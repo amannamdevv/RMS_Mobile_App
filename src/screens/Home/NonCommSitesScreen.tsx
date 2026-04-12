@@ -55,7 +55,7 @@ const SiteCard = ({ item, onPress }: { item: any; onPress: () => void }) => {
       <View style={styles.cardHeader}>
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.siteName} numberOfLines={2}>{item.site_name || '—'}</Text>
-          <Text style={styles.siteId}>{item.site_id}</Text>
+          <Text style={styles.siteId}>Global ID: {item.globel_id || item.global_id || item.site_id || '—'}</Text>
         </View>
         <View style={[styles.daysBadge, { backgroundColor: color + '18', borderColor: color }]}>
           <AppIcon name="wifi-off" size={11} color={color} style={{ marginRight: 4 }} />
@@ -264,12 +264,15 @@ export default function NonCommSitesScreen({ navigation }: Props) {
     { key: '90+ days', label: '90+ Days', color: '#7f1d1d' },
   ];
 
-  const filteredSites = sites.filter(item => 
-    (item.site_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (item.site_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.globel_id || item.global_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.imei || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSites = sites.filter(item => {
+    const q = searchQuery.toLowerCase();
+    return (
+      (item.globel_id || item.global_id || '').toLowerCase().includes(q) ||
+      (item.site_id || '').toLowerCase().includes(q) ||
+      (item.site_name || '').toLowerCase().includes(q) ||
+      (item.imei || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -323,7 +326,7 @@ export default function NonCommSitesScreen({ navigation }: Props) {
           <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by ID, Name or IMEI..."
+            placeholder="Search Global ID, Name, ID, or IMEI..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}

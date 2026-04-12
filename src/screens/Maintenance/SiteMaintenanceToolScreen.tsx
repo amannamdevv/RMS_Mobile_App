@@ -55,8 +55,8 @@ function EquipCard({ item }: { item: any }) {
         <TouchableOpacity style={EC.card} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
             <View style={EC.row}>
                 <View style={{ flex: 1 }}>
-                    <Text style={EC.site} numberOfLines={1}>{item.site_id}</Text>
-                    <Text style={EC.type}>{item.equipment_type}</Text>
+                    <Text style={EC.site} numberOfLines={1}>Global ID: {item.global_id || item.site_id || '—'}</Text>
+                    <Text style={EC.type}>{item.equipment_type} (SID: {item.site_id})</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={[EC.badge, { backgroundColor: `${col}15`, borderColor: col }]}>
@@ -114,8 +114,8 @@ function DCEMCard({ item }: { item: any }) {
         <TouchableOpacity style={EC.card} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
             <View style={EC.row}>
                 <View style={{ flex: 1 }}>
-                    <Text style={EC.site} numberOfLines={1}>{item.site_id}</Text>
-                    <Text style={EC.type}>{item.equipment_type}</Text>
+                    <Text style={EC.site} numberOfLines={1}>Global ID: {item.global_id || item.site_id || '—'}</Text>
+                    <Text style={EC.type}>{item.equipment_type} (SID: {item.site_id})</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     {daysLeft !== null && (
@@ -281,11 +281,16 @@ export default function SiteMaintenanceToolScreen({ navigation, route }: any) {
     const critical = allEquip.filter(e => e.status_class === 'critical').length;
 
     // Search filter
-    const filtered = allEquip.filter(r =>
-        !search ||
-        r.site_id?.toLowerCase().includes(search.toLowerCase()) ||
-        r.equipment_type?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = allEquip.filter(r => {
+        const q = search.toLowerCase();
+        return (
+            (r.global_id || '').toLowerCase().includes(q) ||
+            (r.site_id || '').toLowerCase().includes(q) ||
+            (r.site_name || '').toLowerCase().includes(q) ||
+            (r.imei || '').toLowerCase().includes(q) ||
+            (r.equipment_type || '').toLowerCase().includes(q)
+        );
+    });
 
     // Share
     const handleShare = async () => {
@@ -369,7 +374,7 @@ export default function SiteMaintenanceToolScreen({ navigation, route }: any) {
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput
                                     style={styles.searchInput}
-                                    placeholder="Search by site ID or equipment type..."
+                                    placeholder="Search by Global ID or Name..."
                                     placeholderTextColor="#94a3b8"
                                     value={search}
                                     onChangeText={setSearch}

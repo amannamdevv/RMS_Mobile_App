@@ -19,7 +19,7 @@ const fmt = (v: any, d = 2) => (parseFloat(v) || 0).toFixed(d);
 const convertToCSV = (objArray: any[], meta: any) => {
     if (!objArray || objArray.length === 0) return '';
     const headers = [
-        'IMEI', 'Site Name', 'Month', 'Readings', 'Total kWh', 'Avg Load', 'Avg Curr', 'Max Curr', 'Min Curr',
+        'IMEI', 'Global ID', 'Site ID', 'Site Name', 'Month', 'Readings', 'Total kWh', 'Avg Load', 'Avg Curr', 'Max Curr', 'Min Curr',
         'CH1 Cons', 'CH1 Open', 'CH1 Close',
         'CH2 Cons', 'CH2 Open', 'CH2 Close',
         'CH3 Cons', 'CH3 Open', 'CH3 Close',
@@ -31,6 +31,8 @@ const convertToCSV = (objArray: any[], meta: any) => {
         const ch = row.channels || {};
         const values = [
             `"${row.imei || ''}"`,
+            `"${row.global_id || ''}"`,
+            `"${row.site_id || ''}"`,
             `"${(row.site_name || '').replace(/"/g, '""')}"`,
             `"${row.month_year || ''}"`,
             `"${row.total_readings || 0}"`,
@@ -157,7 +159,7 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
             <LinearGradient colors={['#34495e', '#2c3e50']} style={IS.header}>
                 <View style={{ flex: 1 }}>
                     <Text style={IS.imeiTxt}>IMEI: {row.imei}</Text>
-                    <Text style={IS.siteTxt}>{row.site_name}  ·  ID: {row.site_id}</Text>
+                    <Text style={IS.siteTxt}>{row.site_name}  ·  Global ID: {row.global_id || row.site_id || '—'}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                     <Text style={IS.monthTxt}>{row.month_year}</Text>
@@ -215,7 +217,7 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
                         {/* Header */}
                         <View style={IS.tRow}>
                             {[
-                                'IMEI', 'Site', 'Month', 'Readings',
+                                'IMEI', 'Global ID', 'Site ID', 'Site', 'Month', 'Readings',
                                 'CH1 Cons', 'CH1 Opening', 'CH1 Closing',
                                 'CH2 Cons', 'CH2 Opening', 'CH2 Closing',
                                 'CH3 Cons', 'CH3 Opening', 'CH3 Closing',
@@ -229,6 +231,8 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
                         <View style={[IS.tRow, { backgroundColor: '#f8fafc' }]}>
                             {[
                                 row.imei,
+                                row.global_id,
+                                row.site_id,
                                 row.site_name,
                                 row.month_year,
                                 row.total_readings,
@@ -337,8 +341,9 @@ export default function DCEMMonthlyReportScreen({ navigation, route }: any) {
         if (!searchQuery) return rows;
         const q = searchQuery.toLowerCase();
         return rows.filter((row: any) => 
-            (row.site_name || '').toLowerCase().includes(q) ||
+            (row.global_id || '').toLowerCase().includes(q) ||
             (row.site_id || '').toLowerCase().includes(q) ||
+            (row.site_name || '').toLowerCase().includes(q) ||
             (row.imei || '').toLowerCase().includes(q)
         );
     }, [rows, searchQuery]);
@@ -450,7 +455,7 @@ export default function DCEMMonthlyReportScreen({ navigation, route }: any) {
                         <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
                         <TextInput
                             style={styles.searchInput}
-                            placeholder="Search by Site Name, ID, or IMEI..."
+                            placeholder="Search by Global ID or Name..."
                             placeholderTextColor="#94a3b8"
                             value={searchQuery}
                             onChangeText={setSearchQuery}

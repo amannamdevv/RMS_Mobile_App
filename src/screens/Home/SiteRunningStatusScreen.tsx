@@ -126,6 +126,9 @@ export default function SiteRunningStatusScreen({ navigation }: Props) {
     if (query) {
       filtered = filtered.filter(s => 
         (s.site_name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (s.global_id || '').toLowerCase().includes(query.toLowerCase()) ||
+        (s.globel_id || '').toLowerCase().includes(query.toLowerCase()) ||
+        (s.site_id || '').toLowerCase().includes(query.toLowerCase()) ||
         (s.imei || '').toLowerCase().includes(query.toLowerCase())
       );
     }
@@ -182,6 +185,7 @@ export default function SiteRunningStatusScreen({ navigation }: Props) {
           <View style={{ flex: 1 }}>
             <Text style={styles.siteName}>{item.site_name || '--'}</Text>
             <Text style={styles.imei}>IMEI: {item.imei || '--'}</Text>
+            <Text style={styles.imei}>Global ID: {item.globel_id || item.global_id || item.site_id || '--'}</Text>
           </View>
           <View style={[styles.badge, { backgroundColor: color }]}>
             <Text style={styles.badgeText}>{displayStatus}</Text>
@@ -314,7 +318,7 @@ export default function SiteRunningStatusScreen({ navigation }: Props) {
         <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by Site Name or IMEI..."
+          placeholder="Search Global ID, Name, ID, or IMEI..."
           placeholderTextColor="#94a3b8"
           value={searchQuery}
           onChangeText={handleSearchChange}

@@ -161,7 +161,7 @@ function AlarmCard({ item }: { item: any }) {
             <View style={AC.top}>
                 <View style={{ flex: 1 }}>
                     <Text style={AC.site} numberOfLines={1}>{item.site_name || '—'}</Text>
-                    <Text style={AC.siteId}>{item.site_id || '—'}</Text>
+                    <Text style={AC.siteId}>Global ID: {item.global_id || item.site_id || '—'}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={[AC.badge, { backgroundColor: sevBg, borderColor: sevCol }]}>
@@ -253,7 +253,7 @@ function FilterDrawer({ visible, onClose, filters, setFilters, onApply }: any) {
                             { key: 'site_id', label: 'SITE ID', placeholder: 'e.g. 706307' },
                             { key: 'site_name', label: 'SITE NAME', placeholder: 'Search...' },
                             { key: 'global_id', label: 'GLOBAL ID', placeholder: 'Global ID' },
-                            { key: 'imei', label: 'IMEI', placeholder: 'IMEI number' },
+                            { key: 'imei', label: 'IMEI', placeholder: 'Enter IMEI' },
                         ].map(f => (
                             <View key={f.key}>
                                 <Text style={FD.label}>{f.label}</Text>
@@ -454,9 +454,10 @@ export default function HistoricalAlarmsScreen({ navigation }: any) {
                 : data;
 
         const title = `"HISTORICAL ALARMS REPORT (${filters.date_from} to ${filters.date_to})"`;
-        const header = 'Site ID,Site Name,Alarm Details,Severity,Status,Site Status,Duration,Start Time,End Time,Type,Start Volt,End Volt';
+        const header = 'Global ID,Site ID,Site Name,Alarm Details,Severity,Status,Site Status,Duration,Start Time,End Time,Type,Start Volt,End Volt';
         
         const rows = filtered.map((a, i) => [
+            `"${a.global_id || ''}"`,
             `"${a.site_id || ''}"`,
             `"${a.site_name || ''}"`,
             `"${getAlarmName(a)}"`,
@@ -495,6 +496,7 @@ export default function HistoricalAlarmsScreen({ navigation }: any) {
     const filtered = data.filter(row =>
         !search ||
         row.site_name?.toLowerCase().includes(search.toLowerCase()) ||
+        row.global_id?.toLowerCase().includes(search.toLowerCase()) ||
         row.site_id?.toLowerCase().includes(search.toLowerCase()) ||
         getAlarmName(row).toLowerCase().includes(search.toLowerCase())
     );
@@ -550,7 +552,7 @@ export default function HistoricalAlarmsScreen({ navigation }: any) {
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput
                                     style={styles.searchInput}
-                                    placeholder="Search by site name, ID, alarm..."
+                                    placeholder="Search Global ID, Name, ID, or Alarm..."
                                     placeholderTextColor="#94a3b8"
                                     value={search}
                                     onChangeText={setSearch}

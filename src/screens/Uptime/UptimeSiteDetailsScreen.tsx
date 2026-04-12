@@ -99,8 +99,9 @@ export default function UptimeSiteDetails({ route, navigation }: any) {
             return;
         }
         const filtered = sites.filter(s => 
-            s.site_name?.toLowerCase().includes(text.toLowerCase()) || 
+            s.global_id?.toString().includes(text) ||
             s.site_id?.toString().includes(text) ||
+            s.site_name?.toLowerCase().includes(text.toLowerCase()) || 
             s.imei?.toString().includes(text)
         );
         setFilteredSites(filtered);
@@ -141,7 +142,7 @@ export default function UptimeSiteDetails({ route, navigation }: any) {
                     </View>
                     <View style={styles.siteInfo}>
                         <Text style={styles.siteName} numberOfLines={1}>{item.site_name}</Text>
-                        <Text style={styles.siteId}>ID: {item.site_id} | {item.imei}</Text>
+                        <Text style={styles.siteId}>Global ID: {item.global_id || item.site_id} | {item.imei}</Text>
                         <View style={[styles.slaBadge, { backgroundColor: item.sla_met ? '#2ecc71' : '#e74c3c' }]}>
                             <Text style={styles.slaText}>{item.sla_met ? 'SLA MET' : 'SLA FAILED'}</Text>
                         </View>
@@ -241,7 +242,7 @@ export default function UptimeSiteDetails({ route, navigation }: any) {
                 <AppIcon name="search" size={18} color="#94a3b8" />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search Site ID or Name..."
+                    placeholder="Search by Global ID or Name..."
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={handleSearch}

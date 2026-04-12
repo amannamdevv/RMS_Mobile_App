@@ -34,7 +34,7 @@ export default function AppHeader({
       <TouchableOpacity
         onPress={onLeftPress}
         style={styles.sideBtn}
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
       >
         <Icon
           name={leftAction === 'menu' ? 'menu' : 'arrow-left'}

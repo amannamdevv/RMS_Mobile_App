@@ -243,7 +243,7 @@ export default function NocAnalytics({ navigation }: any) {
         if (!allAlarms.length) return Alert.alert('No data', 'Nothing to export.');
         setExporting(true);
         try {
-            const header = 'TYPE,EVENT ID,SITE ID,SITE NAME,ALARM NAME,SEVERITY,STATUS,START TIME,END TIME,DURATION';
+            const header = 'TYPE,EVENT ID,GLOBAL ID,SITE ID,SITE NAME,ALARM NAME,SEVERITY,STATUS,START TIME,END TIME,DURATION';
             const rows = allAlarms.map(a => {
                 const sev = getSeverity(a);
                 const status = isAlarmOpen(a) ? 'Open' : 'Closed';
@@ -256,6 +256,7 @@ export default function NocAnalytics({ navigation }: any) {
                 return [
                     `"${a.alarm_type || ''}"`,
                     `"${a.event_id || a.alarm_id || ''}"`,
+                    `"${a.global_id || ''}"`,
                     `"${a.site_id || ''}"`,
                     `"${a.site_name || ''}"`,
                     `"${getAlarmDisplayName(a).replace(/"/g, '""')}"`,
@@ -329,8 +330,10 @@ export default function NocAnalytics({ navigation }: any) {
         if (search) {
             const low = search.toLowerCase();
             list = list.filter(a =>
-                a.site_name?.toLowerCase().includes(low) ||
-                a.site_id?.toLowerCase().includes(low) ||
+                (a.global_id || '').toLowerCase().includes(low) ||
+                (a.site_id || '').toLowerCase().includes(low) ||
+                (a.site_name || '').toLowerCase().includes(low) ||
+                (a.imei || '').toLowerCase().includes(low) ||
                 getAlarmDisplayName(a).toLowerCase().includes(low)
             );
         }
@@ -429,7 +432,7 @@ export default function NocAnalytics({ navigation }: any) {
                 <View style={[styles.cardRow, { marginTop: 8 }]}>
                     <View style={{ flex: 1.2 }}>
                         <Text style={styles.siteName} numberOfLines={1}>{item.site_name || '—'}</Text>
-                        <Text style={styles.siteId}>SID: {siteId}</Text>
+                        <Text style={styles.siteId}>Global ID: {item.global_id || item.site_id}</Text>
                     </View>
                     <View style={{ flex: 1, alignItems: 'flex-end' }}>
                         <Text style={styles.alarmName} numberOfLines={2}>{alarmName}</Text>
@@ -590,7 +593,7 @@ export default function NocAnalytics({ navigation }: any) {
                             <Icon name="search" size={14} color="#94a3b8" />
                             <TextInput
                                 style={styles.searchInput}
-                                placeholder="Search site name, ID, alarm..."
+                                placeholder="Search by Global ID or Name..."
                                 placeholderTextColor="#94a3b8"
                                 value={search}
                                 onChangeText={setSearch}

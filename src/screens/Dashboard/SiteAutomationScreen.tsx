@@ -54,9 +54,10 @@ export default function SiteAutomationScreen({ navigation }: any) {
         if (!searchQuery) return data;
         const q = searchQuery.toLowerCase();
         return data.filter((s: any) => 
-            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.global_id || '').toLowerCase().includes(q) ||
             (s.site_id || '').toLowerCase().includes(q) ||
-            (s.global_id || '').toLowerCase().includes(q)
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
         );
     }, [data, searchQuery]);
 
@@ -156,7 +157,7 @@ export default function SiteAutomationScreen({ navigation }: any) {
                     <View style={styles.cardHeader}>
                         <View style={{ flex: 1, marginRight: 8 }}>
                             <Text style={styles.siteName}>{item.site_name}</Text>
-                            <Text style={styles.subText}>ID: {item.site_id} | Global: {item.global_id || 'N/A'}</Text>
+                            <Text style={styles.subText}>Global ID: {item.global_id || item.site_id || '—'} | ID: {item.site_id}</Text>
                         </View>
                         <View style={[styles.tag, item.is_automated ? styles.tagAuto : styles.tagNotAuto]}>
                             <Text style={[styles.tagText, { color: item.is_automated ? '#4caf50' : '#f44336' }]}>
@@ -259,7 +260,7 @@ export default function SiteAutomationScreen({ navigation }: any) {
                     <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search by Site Name, ID, or Global..."
+                        placeholder="Search by Global ID or Name..."
                         placeholderTextColor="#94a3b8"
                         value={searchQuery}
                         onChangeText={setSearchQuery}

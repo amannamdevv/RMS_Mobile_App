@@ -97,7 +97,7 @@ function LogCard({ row, columns }: { row: any; columns: string[] }) {
             <View style={LC.top}>
                 <View style={{ flex: 1 }}>
                     <Text style={LC.name} numberOfLines={1}>{row.site_name || '—'}</Text>
-                    <Text style={LC.id}>{row.site_id || '—'}  ·  {row.gsm_imei_no || '—'}</Text>
+                    <Text style={LC.id}>Global ID: {row.global_id || row.globel_id || row.site_id}  ·  SID: {row.site_id || '—'}  ·  IMEI: {row.gsm_imei_no || '—'}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={[LC.voltBadge, { backgroundColor: `${mainColor}18`, borderColor: mainColor }]}>
@@ -129,7 +129,7 @@ function LogCard({ row, columns }: { row: any; columns: string[] }) {
                 <View style={LC.detail}>
                     <View style={LC.divider} />
                     {columns.map(col => {
-                        if (['site_name', 'site_id', 'gsm_imei_no'].includes(col)) return null;
+                        if (['site_name', 'site_id', 'global_id', 'globel_id', 'gsm_imei_no'].includes(col)) return null;
                         return (
                             <View key={col} style={LC.detailRow}>
                                 <Text style={LC.detailLabel}>{colLabel(col)}</Text>
@@ -177,8 +177,9 @@ function FilterDrawer({ visible, onClose, filters, setFilters, onApply }: any) {
                             { key: 'start_date', label: 'START DATE', placeholder: 'YYYY-MM-DD', isDate: true },
                             { key: 'end_date', label: 'END DATE', placeholder: 'YYYY-MM-DD', isDate: true },
                             { key: 'site_id', label: 'SITE ID', placeholder: 'e.g. 446358' },
+                            { key: 'global_id', label: 'GLOBAL ID', placeholder: 'Global ID' },
                             { key: 'site_name', label: 'SITE NAME', placeholder: 'Search...' },
-                            { key: 'imei', label: 'IMEI', placeholder: 'IMEI number' },
+                            { key: 'imei', label: 'IMEI', placeholder: 'Enter IMEI number' },
                             { key: 'state_id', label: 'STATE ID', placeholder: 'State ID' },
                             { key: 'district_id', label: 'DISTRICT ID', placeholder: 'District ID' },
                             { key: 'cluster_id', label: 'CLUSTER ID', placeholder: 'Cluster ID' },
@@ -333,6 +334,8 @@ export default function SiteLogsScreen({ navigation }: any) {
     const filtered = data.filter(row =>
         !search ||
         row.site_name?.toLowerCase().includes(search.toLowerCase()) ||
+        row.global_id?.toLowerCase().includes(search.toLowerCase()) ||
+        row.globel_id?.toLowerCase().includes(search.toLowerCase()) ||
         row.site_id?.toLowerCase().includes(search.toLowerCase()) ||
         row.gsm_imei_no?.includes(search)
     );
@@ -416,7 +419,7 @@ export default function SiteLogsScreen({ navigation }: any) {
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput
                                     style={styles.searchInput}
-                                    placeholder="Search site name, ID, IMEI..."
+                                    placeholder="Search Global ID, Name, ID, IMEI..."
                                     placeholderTextColor="#94a3b8"
                                     value={search}
                                     onChangeText={setSearch}

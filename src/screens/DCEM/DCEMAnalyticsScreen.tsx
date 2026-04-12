@@ -23,12 +23,13 @@ const fmt = (v: any, d = 2) => (parseFloat(v) || 0).toFixed(d);
 // Helper to convert JSON array to CSV string
 const convertToCSV = (objArray: any[]) => {
     if (!objArray || objArray.length === 0) return '';
-    const headers = ['IMEI', 'Site ID', 'Site Name', 'Date Range', 'Total kWh', 'Operators', 'Avg Current', 'Avg Power', 'Voltage'];
+    const headers = ['IMEI', 'Global ID', 'Site ID', 'Site Name', 'Date Range', 'Total kWh', 'Operators', 'Avg Current', 'Avg Power', 'Voltage'];
     const csvRows = [headers.join(',')];
 
     for (const row of objArray) {
         const values = [
             `"${row.imei || ''}"`,
+            `"${row.global_id || ''}"`,
             `"${row.site_id || ''}"`,
             `"${(row.site_name || '').replace(/"/g, '""')}"`,
             `"${row.date_range || ''}"`,
@@ -95,7 +96,7 @@ function SiteCard({ item, onPress }: { item: any; onPress: () => void }) {
             <View style={SCC.header}>
                 <View style={{ flex: 1 }}>
                     <Text style={SCC.name} numberOfLines={1}>{item.site_name || '—'}</Text>
-                    <Text style={SCC.sub}>SID: {item.site_id}  ·  IMEI: {item.imei}</Text>
+                    <Text style={SCC.sub}>Global ID: {item.global_id || item.site_id}  ·  IMEI: {item.imei}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={SCC.kwh}>
@@ -255,7 +256,11 @@ export default function DCEMAnalyticsScreen({ navigation }: any) {
 
     const meta = data?.meta || {};
     const sites = (data?.sites || []).filter((s: any) =>
-        !search || s.site_name?.toLowerCase().includes(search.toLowerCase()) || s.imei?.includes(search)
+        !search ||
+        s.global_id?.toLowerCase().includes(search.toLowerCase()) || 
+        s.site_id?.toLowerCase().includes(search.toLowerCase()) || 
+        s.site_name?.toLowerCase().includes(search.toLowerCase()) || 
+        s.imei?.includes(search)
     );
 
     const metaKpis = [
@@ -409,7 +414,7 @@ export default function DCEMAnalyticsScreen({ navigation }: any) {
                                     <AppIcon name="search" size={14} color="#94a3b8" style={{ marginRight: 6 }} />
                                     <TextInput
                                         style={styles.searchInput}
-                                        placeholder="Search by site name or IMEI..."
+                                        placeholder="Search by Global ID or Name..."
                                         placeholderTextColor="#94a3b8"
                                         value={search}
                                         onChangeText={setSearch}

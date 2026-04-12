@@ -105,7 +105,7 @@ function SiteCard({ item, index, isSingleDay }: {
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text style={styles.siteName} numberOfLines={1}>{item.site_name || '—'}</Text>
-                    <Text style={styles.siteId}>{item.site_id || '—'}</Text>
+                    <Text style={styles.siteId}>GID: {item.global_id || item.site_id || '—'}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={[styles.ebBadge, { backgroundColor: `${ebColor}15`, borderColor: ebColor }]}>
@@ -215,8 +215,9 @@ export default function EnergyRunHoursDetailsScreen({ navigation, route }: any) 
     // Search filter
     const filtered = siteData.filter(s =>
         !search ||
-        s.site_name?.toLowerCase().includes(search.toLowerCase()) ||
+        s.global_id?.toLowerCase().includes(search.toLowerCase()) ||
         s.site_id?.toLowerCase().includes(search.toLowerCase()) ||
+        s.site_name?.toLowerCase().includes(search.toLowerCase()) ||
         s.state_name?.toLowerCase().includes(search.toLowerCase()) ||
         s.district_name?.toLowerCase().includes(search.toLowerCase())
     );
@@ -225,10 +226,11 @@ export default function EnergyRunHoursDetailsScreen({ navigation, route }: any) 
     const handleExport = async () => {
         if (!siteData.length) return;
         setExporting(true);
-        const header = 'S.NO,SITE ID,SITE NAME,STATE,DISTRICT,CLUSTER,EB HRS,DG HRS,BB HRS,MAINS FAIL,LAST UPDATED';
+        const header = 'S.NO,GLOBAL ID,SITE ID,SITE NAME,STATE,DISTRICT,CLUSTER,EB HRS,DG HRS,BB HRS,MAINS FAIL,LAST UPDATED';
 
         const rows = siteData.map((s, i) => [
             `"${i + 1}"`,
+            `"${s.global_id || ''}"`,
             `"${s.site_id || ''}"`,
             `"${s.site_name || ''}"`,
             `"${s.state_name || ''}"`,
@@ -329,7 +331,7 @@ export default function EnergyRunHoursDetailsScreen({ navigation, route }: any) 
                                     <AppIcon name="search" size={14} color="#94a3b8" />
                                     <TextInput
                                         style={styles.searchInput}
-                                        placeholder="Search site name, ID, state..."
+                                        placeholder="Search by Global ID or Name..."
                                         placeholderTextColor="#94a3b8"
                                         value={search}
                                         onChangeText={setSearch}

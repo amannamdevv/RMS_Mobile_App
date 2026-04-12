@@ -100,7 +100,7 @@ export default function Sidebar({ isVisible, onClose, navigation, fullname, hand
   };
 
   return (
-    <Modal visible={isVisible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={styles.background} />

@@ -78,7 +78,7 @@ const SiteCard = ({ item, onSiteDetailsClick }: { item: Site; onSiteDetailsClick
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.siteId}>{item.site_id}</Text>
+        <Text style={styles.siteId}>Global ID: {item.global_id || item.site_id || '—'}</Text>
         <View style={[styles.badge, item.site_status === 'Active' ? styles.activeBadge : styles.downBadge]}>
           <Text style={styles.badgeText}>{item.site_status}</Text>
         </View>
@@ -87,7 +87,7 @@ const SiteCard = ({ item, onSiteDetailsClick }: { item: Site; onSiteDetailsClick
 
       <View style={styles.infoRow}>
         <View style={styles.infoCol}><Text style={styles.infoLabel}>IMEI</Text><Text style={styles.infoValue}>{item.imei}</Text></View>
-        <View style={styles.infoCol}><Text style={styles.infoLabel}>Global ID</Text><Text style={styles.infoValue}>{item.global_id || '-'}</Text></View>
+        <View style={styles.infoCol}><Text style={styles.infoLabel}>Site ID</Text><Text style={styles.infoValue}>{item.site_id || '-'}</Text></View>
       </View>
       <View style={styles.infoRow}>
         <View style={styles.infoCol}><Text style={styles.infoLabel}>Battery</Text><Text style={styles.infoValue}>{item.battery_v ? `${item.battery_v} V` : '-'}</Text></View>
@@ -220,11 +220,10 @@ export default function SiteStatusScreen({ navigation }: Props) {
         return;
       }
 
-      // Build clean flat rows for CSV
       const csvRows = sitesArray.map((site: any) => ({
+        'Global ID': site.global_id || '',
         'Site ID': site.site_id || '',
         'Site Name': site.site_name || '',
-        'Global ID': site.global_id || '',
         'IMEI': site.imei || '',
         'Status': site.site_status || '',
         'Battery (V)': site.battery_v || '',
@@ -254,11 +253,15 @@ export default function SiteStatusScreen({ navigation }: Props) {
     }
   };
 
-  const filteredSites = sites.filter(site => 
-    (site.site_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (site.global_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (site.site_id || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSites = sites.filter(site => {
+    const q = searchQuery.toLowerCase();
+    return (
+      (site.global_id || '').toLowerCase().includes(q) ||
+      (site.site_id || '').toLowerCase().includes(q) ||
+      (site.site_name || '').toLowerCase().includes(q) ||
+      (site.imei || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -309,7 +312,7 @@ export default function SiteStatusScreen({ navigation }: Props) {
         <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by Global ID or Site Name..."
+          placeholder="Search Global ID, Name, or IMEI..."
           placeholderTextColor="#94a3b8"
           value={searchQuery}
           onChangeText={setSearchQuery}

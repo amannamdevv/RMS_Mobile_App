@@ -99,7 +99,7 @@ export default function SiteDetailsScreen({ route, navigation }: Props) {
         <DetailRow label="SIM Serial No." value={data.sim_info?.serial_no} label2="District" value2={data.district_name} />
         <DetailRow label="GSM IMEI No." value={data.imei} label2="Site Name" value2={data.site_name} />
         <DetailRow label="System Serial No." value={data.system_serial_no} label2="Site Type" value2={data.site_type} />
-        <DetailRow label="Site ID (As Per SMS)" value={data.site_id} label2="Global ID" value2={data.global_id} />
+        <DetailRow label="Global ID" value={data.global_id} label2="Site ID (As Per SMS)" value2={data.site_id} />
         <DetailRow label="System Version Type" value={data.system_version_type} label2="EB Sanction Load" value2="--" />
         <DetailRow label="Installation Date" value={data.installation_date} label2="Device Make & Type" value2="--" />
       </SectionCard>
@@ -469,7 +469,7 @@ export default function SiteDetailsScreen({ route, navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <AppHeader
         title={data.site_name || 'Site Details'}
-        subtitle={`${data.site_id || ''} | ${data.status || ''}`}
+        subtitle={`${data.global_id || data.site_id || ''} | ${data.status || ''}`}
         leftAction="back"
         onLeftPress={() => navigation.goBack()}
       />

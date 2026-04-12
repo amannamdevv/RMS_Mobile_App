@@ -151,7 +151,7 @@ export default function UptimeDashboard({ navigation, route }: any) {
         >
             <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle} numberOfLines={1}>
-                    {item.site_name || item.circle_name || item.opco_name || item.cause_type || item.site_id || 'Unknown'}
+                    {item.site_name || item.circle_name || item.opco_name || item.cause_type || item.global_id || item.site_id || 'Unknown'}
                 </Text>
                 
                 {activeTab === 'seasonal' ? (
@@ -174,7 +174,7 @@ export default function UptimeDashboard({ navigation, route }: any) {
                 ) : (
                     <Text style={styles.rowSub}>
                         {activeTab === 'attribute' ? `Downtime: ${item.downtime_hours}h` : 
-                         activeTab === 'repeat' ? `Circle: ${item.circle || item.circle_name} | ID: ${item.site_id}` : 
+                         activeTab === 'repeat' ? `Circle: ${item.circle || item.circle_name} | Global ID: ${item.global_id || item.site_id}` : 
                          `Total Sites: ${item.total_sites || item.outage_count}`}
                     </Text>
                 )}

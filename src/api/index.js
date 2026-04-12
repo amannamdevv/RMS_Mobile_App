@@ -332,7 +332,7 @@ export const api = {
     const response = await djangoApi.get('/api/site-summary/', { params: filters });
     return response.data;
   },
-  getSiteVariationData: async (filters = {}, page = 1, pageSize = 100) => {
+  getSiteVariationData: async (filters = {}, page = 1, pageSize = 2000) => {
     const response = await djangoApi.get('/api/site-variation-data/', { params: { ...filters, page, page_size: pageSize } });
     return response.data;
   },

@@ -113,10 +113,10 @@ export default function CommReportScreen({ navigation }: Props) {
         }
         setExporting(true);
         try {
-            const header = "Site ID,IMEI,Site Name,Status,SMPS Last Comm,AMF Last Comm,DCEM Last Comm,Remarks\n";
+            const header = "Global ID,Site ID,IMEI,Site Name,Status,SMPS Last Comm,AMF Last Comm,DCEM Last Comm,Remarks\n";
             const rowData = displayItems.map(s => {
                 const c = commData.find(d => d.imei === s.imei);
-                return `"${s.site_id}","${s.imei}","${s.site_name}","${s.site_status}","${c?.SMPS_LAST_COM||'-'}","${c?.AMF_LAST_COM||'-'}","${c?.DCEM_Last_Com||'-'}","${(c?.Remarks || '').replace(/"/g, '""')}"`;
+                return `"${s.global_id || ''}","${s.site_id}","${s.imei}","${s.site_name}","${s.site_status}","${c?.SMPS_LAST_COM||'-'}","${c?.AMF_LAST_COM||'-'}","${c?.DCEM_Last_Com||'-'}","${(c?.Remarks || '').replace(/"/g, '""')}"`;
             }).join("\n");
 
             const csvContent = header + rowData;
@@ -168,8 +168,9 @@ export default function CommReportScreen({ navigation }: Props) {
         if (search) {
             const low = search.toLowerCase();
             list = list.filter(s =>
-                s.site_name?.toLowerCase().includes(low) ||
+                s.global_id?.toLowerCase().includes(low) ||
                 s.site_id?.toLowerCase().includes(low) ||
+                s.site_name?.toLowerCase().includes(low) ||
                 s.imei?.includes(search)
             );
         }
@@ -222,7 +223,7 @@ export default function CommReportScreen({ navigation }: Props) {
                     <AppIcon name="search" size={14} color="#94a3b8" />
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search by site name, ID, IMEI..."
+                        placeholder="Search Global ID or Name..."
                         placeholderTextColor="#94a3b8"
                         value={search}
                         onChangeText={setSearch}
@@ -258,7 +259,7 @@ export default function CommReportScreen({ navigation }: Props) {
                                 <View style={styles.card}>
                                     <TouchableOpacity style={styles.cardInfo} onPress={() => setExpandedImei(open ? null : item.imei)}>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={styles.cardId}>{item.site_id}</Text>
+                                            <Text style={styles.cardId}>Global ID: {item.global_id || item.site_id}</Text>
                                             <Text style={styles.cardName}>{item.site_name}</Text>
                                             <Text style={styles.cardImei}>{item.imei}</Text>
                                         </View>
@@ -331,7 +332,7 @@ const Unit = ({ label, ok, l, m, t }: any) => (
             </View>
         </View>
         <Text style={styles.unitV}>Make: {m || '-'}</Text>
-        <Text style={styles.unitV}>Last: {t ? t.split(' ')[1] : '-'}</Text>
+        <Text style={styles.unitV}>Last: {t || '-'}</Text>
     </View>
 );
 

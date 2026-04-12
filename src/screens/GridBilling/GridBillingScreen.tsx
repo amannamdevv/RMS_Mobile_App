@@ -137,7 +137,7 @@ function AbnCard({ item, type }: { item: any; type: 'spike' | 'offhours' | 'week
         <View style={[ACS.card, { backgroundColor: bg, borderLeftColor: color }]}>
             <View style={{ flex: 1 }}>
                 <Text style={ACS.name}>{item.site_name}</Text>
-                <Text style={ACS.id}>{item.site_id}</Text>
+                <Text style={ACS.id}>{item.global_id || item.site_id}</Text>
                 {type === 'spike' && (
                     <Text style={ACS.stats}>Period avg: <Text style={{ fontWeight: '800' }}>{item.period_avg} kWh</Text>  Today: <Text style={{ fontWeight: '800' }}>{item.today_avg} kWh</Text></Text>
                 )}
@@ -293,8 +293,10 @@ function QualityTab({ data, searchQuery, refreshing, onRefresh }: { data: any, s
         if (!searchQuery) return originalSiteData;
         const query = searchQuery.toLowerCase();
         return originalSiteData.filter((s: any) => 
-            (s.site_name || '').toLowerCase().includes(query) || 
-            (s.site_id || '').toLowerCase().includes(query)
+            (s.global_id || '').toLowerCase().includes(query) || 
+            (s.site_id || '').toLowerCase().includes(query) ||
+            (s.site_name || '').toLowerCase().includes(query) ||
+            (s.imei || '').toLowerCase().includes(query)
         );
     }, [originalSiteData, searchQuery]);
 
@@ -302,8 +304,10 @@ function QualityTab({ data, searchQuery, refreshing, onRefresh }: { data: any, s
         if (!searchQuery) return originalAlerts;
         const query = searchQuery.toLowerCase();
         return originalAlerts.filter((a: any) => 
-            (a.site_name || '').toLowerCase().includes(query) || 
-            (a.site_id || '').toLowerCase().includes(query)
+            (a.global_id || '').toLowerCase().includes(query) || 
+            (a.site_id || '').toLowerCase().includes(query) ||
+            (a.site_name || '').toLowerCase().includes(query) ||
+            (a.imei || '').toLowerCase().includes(query)
         );
     }, [originalAlerts, searchQuery]);
 
@@ -346,7 +350,7 @@ function QualityTab({ data, searchQuery, refreshing, onRefresh }: { data: any, s
                         <View key={i} style={QTS.row}>
                             <View style={{ flex: 1.5 }}>
                                 <Text style={QTS.siteName} numberOfLines={1}>{s.site_name}</Text>
-                                <Text style={QTS.siteId}>{s.site_id}</Text>
+                                <Text style={QTS.siteId}>{s.global_id || s.site_id}</Text>
                             </View>
                             <View style={{ flex: 1, flexDirection: 'row', gap: 4, justifyContent: 'center' }}>
                                 <PhaseBadge count={s.r_phase_missing} phase="R" />
@@ -373,7 +377,7 @@ function QualityTab({ data, searchQuery, refreshing, onRefresh }: { data: any, s
                         <View key={i} style={QTS.alertRow}>
                             <AppIcon name="alert-circle" size={14} color="#ef4444" />
                             <View style={{ flex: 1 }}>
-                                <Text style={QTS.alertSite}>{a.site_id} — {a.site_name}</Text>
+                                <Text style={QTS.alertSite}>{a.global_id || a.site_id} — {a.site_name}</Text>
                                 <Text style={{ fontSize: 10, color: '#ef4444', fontWeight: '600' }}>{a.alert_type}</Text>
                                 {a.timestamp && (
                                     <Text style={{ fontSize: 9, color: '#94a3b8' }}>{new Date(a.timestamp).toLocaleString()}</Text>
@@ -416,8 +420,10 @@ function TODTab({ data, searchQuery, refreshing, onRefresh }: { data: any, searc
         if (!searchQuery) return alerts || [];
         const query = searchQuery.toLowerCase();
         return (alerts || []).filter(a => 
-            (a.site_name || '').toLowerCase().includes(query) || 
-            (a.site_id || '').toLowerCase().includes(query)
+            (a.global_id || '').toLowerCase().includes(query) ||
+            (a.site_id || '').toLowerCase().includes(query) ||
+            (a.site_name || '').toLowerCase().includes(query) ||
+            (a.imei || '').toLowerCase().includes(query)
         );
     };
 
@@ -590,7 +596,7 @@ function FilterDrawer({ visible, onClose, onApply, states, districts, sites, fil
                             <DropPicker
                                 label="SITE"
                                 value={filters.site_id}
-                                options={sites.map((s: any) => ({ label: `${s.site_name} (${s.site_id})`, value: s.site_id }))}
+                                options={sites.map((s: any) => ({ label: `${s.site_name} (${s.global_id || s.site_id})`, value: s.site_id }))}
                                 onChange={v => setFilters((f: any) => ({ ...f, site_id: v }))}
                                 placeholder="All Sites"
                             />
@@ -725,8 +731,9 @@ export default function GridBillingScreen({ navigation }: any) {
         if (!data) return Alert.alert('No data', 'Nothing to export.');
         setExporting(true);
         try {
-            const header = 'SITE ID,SITE NAME,AC UPTIME,R-PHASE MISSING,Y-PHASE MISSING,B-PHASE MISSING,LOW VOLTAGE';
+            const header = 'GLOBAL ID,SITE ID,SITE NAME,AC UPTIME,R-PHASE MISSING,Y-PHASE MISSING,B-PHASE MISSING,LOW VOLTAGE';
             const siteRows = (data.quality_of_supply?.site_data || []).map((s: any) => [
+                `"${s.global_id || ''}"`,
                 `"${s.site_id || ''}"`,
                 `"${s.site_name || ''}"`,
                 `"${s.ac_uptime || ''}"`,
@@ -792,7 +799,7 @@ export default function GridBillingScreen({ navigation }: any) {
                     <AppIcon name="search" size={18} color="#64748b" style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search by Site Name or ID..."
+                        placeholder="Search by Global ID or Name..."
                         placeholderTextColor="#94a3b8"
                         value={searchQuery}
                         onChangeText={setSearchQuery}

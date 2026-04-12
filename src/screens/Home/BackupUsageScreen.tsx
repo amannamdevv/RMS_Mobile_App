@@ -90,6 +90,7 @@ export default function BackupUsageScreen({ navigation }: Props) {
       const low = searchQuery.toLowerCase();
       list = list.filter(s =>
         s.site_name?.toLowerCase().includes(low) ||
+        s.global_id?.toLowerCase().includes(low) ||
         s.site_id?.toLowerCase().includes(low) ||
         s.imei?.toLowerCase().includes(low)
       );
@@ -107,6 +108,7 @@ export default function BackupUsageScreen({ navigation }: Props) {
     try {
       const rows = sites.map((s, i) => ({
         'S.No': i + 1,
+        'Global ID': s.global_id || '',
         'Site ID': s.site_id,
         'Site Name': s.site_name,
         'IMEI': s.imei,
@@ -219,7 +221,7 @@ export default function BackupUsageScreen({ navigation }: Props) {
                 <AppIcon name="search" size={14} color="#94a3b8" />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search by site name, ID, or IMEI..."
+                    placeholder="Search Global ID, Name, ID, or IMEI..."
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -246,7 +248,7 @@ export default function BackupUsageScreen({ navigation }: Props) {
                   <View key={`${site.imei}-${idx}`} style={[styles.siteCard, idx % 2 === 0 && styles.siteCardAlt]}>
                     {/* Header */}
                     <View style={styles.siteCardHeader}>
-                      <Text style={styles.siteId}>{site.site_id}</Text>
+                      <Text style={styles.siteId}>Global ID: {site.global_id || site.site_id}</Text>
                       <View style={[styles.typeBadge, { backgroundColor: cfg.bg }]}>
                         <Text style={[styles.typeBadgeTxt, { color: cfg.fg }]}>{cfg.label}</Text>
                       </View>

@@ -29,6 +29,9 @@ export default function MasterReport({ navigation }: any) {
     const [fullname, setFullname] = useState('Administrator');
 
     const [date, setDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [gIdFilter, setGIdFilter] = useState('');
+
     const [activeFilters, setActiveFilters] = useState<any>({});
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [expandedIds, setExpandedIds] = useState<string[]>([]);
@@ -46,9 +49,9 @@ export default function MasterReport({ navigation }: any) {
         if (!searchQuery) return listData;
         const q = searchQuery.toLowerCase();
         return listData.filter(item =>
-            (item.site_name || '').toLowerCase().includes(q) ||
-            (item.site_id || '').toLowerCase().includes(q) ||
             (item.global_id || '').toLowerCase().includes(q) ||
+            (item.site_id || '').toLowerCase().includes(q) ||
+            (item.site_name || '').toLowerCase().includes(q) ||
             (item.imei || '').toLowerCase().includes(q)
         );
     }, [listData, searchQuery]);
@@ -57,7 +60,8 @@ export default function MasterReport({ navigation }: any) {
         setLoading(true);
         try {
             const params = {
-                date: (currentFilters.date_from || date.toISOString().split('T')[0]),
+                date: (currentFilters.date || date.toISOString().split('T')[0]),
+                global_id: gIdFilter,
                 ...currentFilters,
             };
 
@@ -131,7 +135,7 @@ export default function MasterReport({ navigation }: any) {
                 <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.siteName}>{item.site_name}</Text>
-                        <Text style={styles.siteId}>ID: {item.site_id} | Global: {item.global_id}</Text>
+                        <Text style={styles.siteId}>Global ID: {item.global_id || '—'} | ID: {item.site_id}</Text>
                     </View>
                     <Icon name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color="#64748b" />
                 </View>
@@ -237,19 +241,54 @@ export default function MasterReport({ navigation }: any) {
                     ]}
                 />
 
-            <View style={styles.headerStats}>
-                <View style={[styles.statBox, { flex: 1 }]}>
-                    <Text style={styles.statVal}>{totalRecords}</Text>
-                    <Text style={styles.statLab}>Total Records Found</Text>
+            <View style={styles.inlineFilterBar}>
+                <View style={styles.filterGroup}>
+                   <Text style={styles.filterLabel}>Date</Text>
+                   <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+                       <Text style={styles.datePickerText}>{date.toISOString().split('T')[0]}</Text>
+                       <Icon name="calendar" size={14} color="#1e3c72" />
+                   </TouchableOpacity>
                 </View>
+                <View style={[styles.filterGroup, { flex: 1 }]}>
+                   <Text style={styles.filterLabel}>Global ID</Text>
+                   <View style={styles.gIdInputBox}>
+                       <TextInput 
+                           style={styles.gIdInput}
+                           placeholder="GID..."
+                           value={gIdFilter}
+                           onChangeText={setGIdFilter}
+                           placeholderTextColor="#94a3b8"
+                       />
+                       {!!gIdFilter && <TouchableOpacity onPress={() => setGIdFilter('')}><Icon name="x" size={14} color="#94a3b8" /></TouchableOpacity>}
+                   </View>
+                </View>
+                <TouchableOpacity 
+                    style={styles.searchIconButton} 
+                    onPress={() => fetchReportData(1, { ...activeFilters, date: date.toISOString().split('T')[0], global_id: gIdFilter })}
+                    activeOpacity={0.8}
+                >
+                    <Icon name="search" size={18} color="#fff" />
+                </TouchableOpacity>
             </View>
+
+            {showDatePicker && (
+                <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowDatePicker(false);
+                        if (selectedDate) setDate(selectedDate);
+                    }}
+                />
+            )}
 
             <View style={styles.searchContainer}>
                 <View style={styles.searchBar}>
                     <Icon name="search" size={20} color="#64748b" style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search by Site Name, ID, or IMEI..."
+                        placeholder="Search by Global ID or Name..."
                         placeholderTextColor="#94a3b8"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -270,6 +309,10 @@ export default function MasterReport({ navigation }: any) {
             />
 
             <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.countBar}>
+                    <Text style={styles.countText}>{totalRecords} RECORDS FOUND FOR THE DAY</Text>
+                    <View style={styles.countLine} />
+                </View>
 
                 <View style={styles.listContainer}>
                     {loading ? (
@@ -323,12 +366,23 @@ export default function MasterReport({ navigation }: any) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#c5d4eeff' },
+    countBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 15, gap: 10 },
+    countText: { fontSize: 10, fontWeight: '800', color: '#64748b', letterSpacing: 0.5 },
+    countLine: { flex: 1, height: 1, backgroundColor: '#cbd5e1' },
     headerStats: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: moderateScale(15), backgroundColor: '#fff', marginHorizontal: moderateScale(15), marginTop: moderateScale(15), borderRadius: moderateScale(15), elevation: 3 },
     searchContainer: { paddingHorizontal: moderateScale(15), marginTop: moderateScale(15) },
     searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: moderateScale(12), paddingHorizontal: moderateScale(12), height: moderateScale(45), elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
     searchIcon: { marginRight: moderateScale(8) },
     searchInput: { flex: 1, fontSize: responsiveFontSize(14), color: '#1e293b', paddingVertical: 0 },
     statBox: { backgroundColor: '#f1f5f9', paddingHorizontal: moderateScale(15), paddingVertical: moderateScale(8), borderRadius: moderateScale(12) },
+    inlineFilterBar: { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: '#fff', marginHorizontal: 15, marginTop: 15, borderRadius: 15, alignItems: 'flex-end', elevation: 3 },
+    filterGroup: { gap: 4 },
+    filterLabel: { fontSize: 9, fontWeight: '800', color: '#64748b', textTransform: 'uppercase' },
+    datePickerBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 8, paddingHorizontal: 10, height: 40, gap: 8, borderWidth: 1, borderColor: '#e2e8f0' },
+    datePickerText: { fontSize: 13, fontWeight: '700', color: '#1e3c72' },
+    gIdInputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 8, paddingHorizontal: 10, height: 40, borderWidth: 1, borderColor: '#e2e8f0' },
+    gIdInput: { flex: 1, fontSize: 13, fontWeight: '600', color: '#1e3c72', height: '100%', padding: 0 },
+    searchIconButton: { width: 40, height: 40, backgroundColor: '#1e3c72', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     statVal: { color: '#1e3c72', fontSize: responsiveFontSize(18), fontWeight: 'bold' },
     statLab: { color: '#64748b', fontSize: responsiveFontSize(10), textTransform: 'uppercase' },
     listContainer: { padding: moderateScale(15) },

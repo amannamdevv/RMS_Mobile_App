@@ -76,8 +76,8 @@ function EquipmentCard({ item }: { item: any }) {
         <TouchableOpacity style={EC.card} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
             <View style={EC.row}>
                 <View style={{ flex: 1 }}>
-                    <Text style={EC.site} numberOfLines={1}>{item.site_id}</Text>
-                    <Text style={EC.type}>{item.equipment_type}</Text>
+                    <Text style={EC.site} numberOfLines={1}>Global ID: {item.global_id || item.site_id || '—'}</Text>
+                    <Text style={EC.type}>{item.equipment_type} (Site: {item.site_id})</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     <View style={[EC.badge, { backgroundColor: `${col}15`, borderColor: col }]}>
@@ -130,8 +130,8 @@ function TicketCard({ item }: { item: any }) {
             <View style={TC.row}>
                 <View style={{ flex: 1 }}>
                     <Text style={TC.code}>#{item.ticket_code || item.id || '—'}</Text>
-                    <Text style={TC.sub} numberOfLines={1}>{item.site_id}  ·  {item.issue_category}</Text>
-                    {!!item.raised_date && <Text style={TC.date}>{item.raised_date}</Text>}
+                    <Text style={TC.sub} numberOfLines={1}>{item.global_id || item.site_id}  ·  {item.issue_category}</Text>
+                    <Text style={TC.date}>{item.raised_date} {item.site_id ? ` · Site: ${item.site_id}` : ''}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     {!!item.priority && (
@@ -218,7 +218,7 @@ function RaiseForm({ onSubmit, submitting }: {
             <Text style={RF.label}>Site ID / Name *</Text>
             <TextInput style={RF.input} value={form.siteId}
                 onChangeText={v => setForm(f => ({ ...f, siteId: v }))}
-                placeholder="Enter site ID or name" placeholderTextColor="#94a3b8" />
+                placeholder="Enter Site ID or Name" placeholderTextColor="#94a3b8" />
 
             <Text style={RF.label}>Issue Category *</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
@@ -294,10 +294,6 @@ function MyTicketsTable({ filteredMy, onExport, exporting }: { filteredMy: any[]
         <View style={styles.myTicketsCard}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <Text style={styles.secHead}>My Tickets</Text>
-                <TouchableOpacity style={styles.exportBtn} onPress={onExport}>
-                    <AppIcon name={exporting ? 'loader' : 'download'} size={12} color="#fff" />
-                    <Text style={styles.exportTxt}>Export CSV</Text>
-                </TouchableOpacity>
             </View>
             <View style={styles.tblHeader}>
                 {['TT No', 'Site ID', 'Category', 'Status', 'Raised On'].map((h, i) => (
@@ -451,12 +447,36 @@ export default function TTToolScreen({ navigation, route }: any) {
     const repairMeta = toolData?.major_repairs?.metrics || {};
     const eqData: any[] = toolData?.equipment?.[eqTab] || [];
 
-    // Filtered lists
-    const filteredEq = eqData.filter(r => !search || r.site_id?.toLowerCase().includes(search.toLowerCase()));
-    const filteredOpen = openTickets.filter((t: any) => !search || t.site_id?.toLowerCase().includes(search.toLowerCase()) || String(t.ticket_code || '').includes(search));
-    const filteredClosed = closedTickets.filter((t: any) => !search || t.site_id?.toLowerCase().includes(search.toLowerCase()));
-    const filteredRepairs = repairs.filter((t: any) => !search || t.site_id?.toLowerCase().includes(search.toLowerCase()) || String(t.ticket_code || '').includes(search));
-    const filteredMy = myTickets.filter((t: any) => !search || t.site_id?.toLowerCase().includes(search.toLowerCase()));
+    // Filtered lists (Prioritizing Global ID)
+    const filteredEq = eqData.filter(r => !search || 
+        r.global_id?.toLowerCase().includes(search.toLowerCase()) || 
+        r.site_id?.toLowerCase().includes(search.toLowerCase()));
+    
+    const filteredOpen = openTickets.filter((t: any) => !search || 
+        (t.global_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t.imei || '').toLowerCase().includes(search.toLowerCase()) ||
+        String(t.ticket_code || '').includes(search));
+    
+    const filteredClosed = closedTickets.filter((t: any) => !search || 
+        (t.global_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t.imei || '').toLowerCase().includes(search.toLowerCase()));
+    
+    const filteredRepairs = repairs.filter((t: any) => !search || 
+        (t.global_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t.imei || '').toLowerCase().includes(search.toLowerCase()) ||
+        String(t.ticket_code || '').includes(search));
+    
+    const filteredMy = myTickets.filter((t: any) => !search || 
+        (t.global_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_id || '').toLowerCase().includes(search.toLowerCase()) || 
+        (t.site_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t.imei || '').toLowerCase().includes(search.toLowerCase()));
 
     // Tab header title
     const TAB_TITLES: Record<TabKey, string> = {
@@ -474,13 +494,13 @@ export default function TTToolScreen({ navigation, route }: any) {
             let fileName = '';
 
             if (activeTab === 'equipment') {
-                const header = 'SITE ID,TYPE,INSTALL DATE,STATUS\n';
-                const rows = eqData.map(r => `"${r.site_id}","${r.equipment_type}","${r.installation_date || '-'}","${r.status_label}"`).join('\n');
+                const header = 'GLOBAL ID,SITE ID,TYPE,INSTALL DATE,STATUS\n';
+                const rows = eqData.map(r => `"${r.global_id || '-'}","${r.site_id}","${r.equipment_type}","${r.installation_date || '-'}","${r.status_label}"`).join('\n');
                 csvString = header + rows;
                 fileName = `Equipment_${eqTab}_${Date.now()}.csv`;
             } else if (activeTab === 'repairs') {
-                const header = 'TICKET,SITE,CATEGORY,PRIORITY,STATUS,DATE\n';
-                const rows = repairs.map((t: any) => `"${t.ticket_code || t.id}","${t.site_id}","${t.issue_category}","${t.priority}","${t.status}","${t.raised_date}"`).join('\n');
+                const header = 'TICKET,GLOBAL ID,SITE ID,CATEGORY,PRIORITY,STATUS,DATE\n';
+                const rows = repairs.map((t: any) => `"${t.ticket_code || t.id}","${t.global_id || '-'}","${t.site_id}","${t.issue_category}","${t.priority}","${t.status}","${t.raised_date}"`).join('\n');
                 csvString = header + rows;
                 fileName = `Major_Repairs_${Date.now()}.csv`;
             } else if (activeTab === 'tickets' || activeTab === 'raise') {
@@ -576,7 +596,7 @@ export default function TTToolScreen({ navigation, route }: any) {
                             <View style={styles.searchWrap}>
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput style={styles.searchInput}
-                                    placeholder="Search site, ticket ID..."
+                                    placeholder="Search by Site ID or Name..."
                                     placeholderTextColor="#94a3b8"
                                     value={search} onChangeText={setSearch} />
                                 {!!search && <TouchableOpacity onPress={() => setSearch('')}><AppIcon name="x" size={14} color="#94a3b8" /></TouchableOpacity>}
@@ -629,7 +649,7 @@ export default function TTToolScreen({ navigation, route }: any) {
                             <View style={styles.searchWrap}>
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput style={styles.searchInput}
-                                    placeholder="Search by site ID..."
+                                    placeholder="Search by Site ID or Name..."
                                     placeholderTextColor="#94a3b8"
                                     value={search} onChangeText={setSearch} />
                                 {!!search && <TouchableOpacity onPress={() => setSearch('')}><AppIcon name="x" size={14} color="#94a3b8" /></TouchableOpacity>}
@@ -655,9 +675,9 @@ export default function TTToolScreen({ navigation, route }: any) {
                             <View style={styles.searchWrap}>
                                 <AppIcon name="search" size={14} color="#94a3b8" />
                                 <TextInput style={styles.searchInput}
-                                    placeholder="Search site, ticket ID..."
-                                    placeholderTextColor="#94a3b8"
-                                    value={search} onChangeText={setSearch} />
+                                     placeholder="Search by Site ID or Name..."
+                                     placeholderTextColor="#94a3b8"
+                                     value={search} onChangeText={setSearch} />
                                 {!!search && <TouchableOpacity onPress={() => setSearch('')}><AppIcon name="x" size={14} color="#94a3b8" /></TouchableOpacity>}
                             </View>
                             <FlatList

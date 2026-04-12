@@ -101,7 +101,7 @@ function SiteCard({ site, statusField, rows, note }: {
                 <View style={{ flex: 1, paddingRight: 8 }}>
                     <Text style={SC.name} numberOfLines={1}>{site.site_name || '—'}</Text>
                     <Text style={SC.sub}>
-                        {site.site_id || '—'}{site.state_name ? `  ·  ${site.state_name}` : ''}
+                        Global ID: {site.global_id || site.site_id || '—'}{site.state_name ? `  ·  ${site.state_name}` : ''}
                     </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
@@ -185,7 +185,12 @@ function BatteryScreen({ data, refreshing, onRefresh, searchQuery }: ScreenProps
         ];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter(s => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [cats, searchQuery]);
 
     const summItems = [
@@ -247,7 +252,12 @@ function DGScreen({ data, refreshing, onRefresh, searchQuery }: ScreenProps) {
         const all = data?.categories?.all_sites || [];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter((s: any) => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter((s: any) => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [data, searchQuery]);
 
     const summItems = [
@@ -312,7 +322,12 @@ function RectifierScreen({ data, refreshing, onRefresh, searchQuery }: ScreenPro
         ];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter(s => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [cats, searchQuery]);
 
     const summItems = [
@@ -372,7 +387,12 @@ function SolarScreen({ data, refreshing, onRefresh, searchQuery }: ScreenProps) 
         ];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter(s => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [cats, searchQuery]);
 
     const summItems = [
@@ -431,7 +451,12 @@ function DGBatteryScreen({ data, refreshing, onRefresh, searchQuery }: ScreenPro
         ];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter(s => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter(s => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [cats, searchQuery]);
 
     const summItems = [
@@ -480,7 +505,12 @@ function LightningScreen({ data, refreshing, onRefresh, searchQuery }: ScreenPro
         const all = data?.categories?.la_needs_check || [];
         if (!searchQuery) return all;
         const q = searchQuery.toLowerCase();
-        return all.filter((s: any) => (s.site_name || '').toLowerCase().includes(q) || (s.site_id || '').toLowerCase().includes(q));
+        return all.filter((s: any) => 
+            (s.global_id || '').toLowerCase().includes(q) || 
+            (s.site_id || '').toLowerCase().includes(q) || 
+            (s.site_name || '').toLowerCase().includes(q) ||
+            (s.imei || '').toLowerCase().includes(q)
+        );
     }, [data, searchQuery]);
 
     const summItems = [
@@ -664,7 +694,7 @@ export default function AssetHealthScreen({ navigation, route }: any) {
                     <Icon name="search" size={16} color="#64748b" style={MS.searchIcon} />
                     <TextInput
                         style={MS.searchInput}
-                        placeholder={`Search ${currTab.label} by Name or ID...`}
+                        placeholder={`Search Global ID or Name...`}
                         placeholderTextColor="#94a3b8"
                         value={searchQuery}
                         onChangeText={setSearchQuery}

@@ -102,8 +102,8 @@ function RevCard({ item }: { item: any }) {
         <TouchableOpacity style={[RC.card, { borderLeftColor: col }]} onPress={() => setOpen(o => !o)} activeOpacity={0.85}>
             <View style={RC.top}>
                 <View style={{ flex: 1 }}>
-                    <Text style={RC.sid}>{item.site_id || '—'}</Text>
-                    <Text style={RC.imei}>{item.imei || '—'}</Text>
+                    <Text style={RC.sid}>Global ID: {item.global_id || item.site_id || '—'}</Text>
+                    <Text style={RC.imei}>{item.imei || '—'} {item.site_id ? `| ${item.site_id}` : ''}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 3 }}>
                     <View style={[RC.badge, { backgroundColor: `${col}15`, borderColor: col }]}>
@@ -249,7 +249,9 @@ export default function OptimizationReportsScreen({ navigation, route }: any) {
         if (!search) return allRows;
         const query = search.toLowerCase();
         return allRows.filter(r =>
+            (r.global_id || '').toLowerCase().includes(query) || 
             (r.site_id || '').toLowerCase().includes(query) || 
+            (r.site_name || '').toLowerCase().includes(query) ||
             (r.imei || '').toLowerCase().includes(query)
         );
     }, [allRows, search]);
@@ -383,7 +385,7 @@ export default function OptimizationReportsScreen({ navigation, route }: any) {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 }}>
                                     <View style={S.searchBox}>
                                         <Icon name="search" size={14} color="#94a3b8" />
-                                        <TextInput style={S.searchInput} value={search} onChangeText={setSearch} placeholder="Search site, imei..." placeholderTextColor="#94a3b8" />
+                                        <TextInput style={S.searchInput} value={search} onChangeText={setSearch} placeholder="Search by Global ID or Name..." placeholderTextColor="#94a3b8" />
                                         {!!search && <TouchableOpacity onPress={() => setSearch('')}><Icon name="x" size={14} color="#94a3b8" /></TouchableOpacity>}
                                     </View>
                                     <TouchableOpacity style={S.filterBtn} onPress={() => setFilterModal(true)}>

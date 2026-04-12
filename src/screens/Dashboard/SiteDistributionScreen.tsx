@@ -125,7 +125,6 @@ export default function SiteDistributionScreen({ navigation }: Props) {
         <ActivityIndicator size="large" color="#1e3c72" style={{ marginTop: 50 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.totalText}>Total Analyzed Sites: {counts.total}</Text>
 
           <MetricCard title="BSC vs Hub Sites" 
             val1={counts.bsc} label1="BSC" key1="bsc" color1="#0ea5e9"

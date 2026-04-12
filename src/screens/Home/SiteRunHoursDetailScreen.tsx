@@ -306,7 +306,7 @@ export default function SiteRunHoursDetailScreen({ route, navigation }: Props) {
 
         {/* ── Site Info ── */}
         <View style={styles.siteInfoCard}>
-          <View style={styles.infoItem}><Text style={styles.infoLbl}>Site ID</Text><Text style={styles.infoVal}>{siteInfo.site_id || '--'}</Text></View>
+          <View style={styles.infoItem}><Text style={styles.infoLbl}>Global ID</Text><Text style={styles.infoVal}>{siteInfo.site_id || '--'}</Text></View>
           <View style={styles.infoItem}><Text style={styles.infoLbl}>Site Name</Text><Text style={styles.infoVal}>{siteInfo.site_name || siteName || '--'}</Text></View>
           <View style={styles.infoItem}><Text style={styles.infoLbl}>IMEI</Text><Text style={styles.infoVal}>{siteInfo.imei || imei}</Text></View>
           <View style={styles.infoItem}><Text style={styles.infoLbl}>Records</Text><Text style={styles.infoVal}>{siteInfo.total ?? '--'}</Text></View>

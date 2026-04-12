@@ -157,7 +157,7 @@ export default function UptimeDetailsScreen({ route, navigation }: any) {
                 <Animatable.View animation="fadeInUp" delay={index * 10}>
                     <View style={styles.cardHeader}>
                         <View style={styles.siteInfo}>
-                            <Text style={styles.siteIdText}>{item.id}</Text>
+                            <Text style={styles.siteIdText}>Global ID: {item.id}</Text>
                             <Text style={styles.imeiText}>{item.imei}</Text>
                         </View>
                         <View style={styles.uptimeCol}>

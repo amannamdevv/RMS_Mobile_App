@@ -27,6 +27,7 @@ interface Site {
   status: 'Active' | 'Non Active';
   last_communication: string;
   comm_timestamp: string | null;
+  global_id?: string;
 }
 
 interface SummaryData {
@@ -174,7 +175,7 @@ function SiteCard({ item }: { item: Site }) {
       <View style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
           <Text style={styles.siteName} numberOfLines={1}>{item.site_name}</Text>
-          <Text style={styles.siteId}>ID: {item.site_id}</Text>
+          <Text style={styles.siteId}>Global ID: {item.global_id || item.site_id}</Text>
         </View>
         <View style={[styles.statusBadge, isActive ? styles.badgeActive : styles.badgeInactive]}>
           <AppIcon name={isActive ? 'wifi' : 'wifi-off'} size={11} color={isActive ? '#22c55e' : '#ef4444'} />
@@ -266,8 +267,9 @@ export default function ResourceMappingScreen({ navigation }: any) {
     if (!summary?.sites?.length) return Alert.alert('No data', 'Nothing to export.');
     setExporting(true);
     try {
-      const header = 'SITE ID,SITE NAME,TECHNICIAN,MOBILE,STATUS,LAST COMMUNICATION';
+      const header = 'GLOBAL ID,SITE ID,SITE NAME,TECHNICIAN,MOBILE,STATUS,LAST COMMUNICATION';
       const rows = summary.sites.map(s => [
+        `"${s.global_id || ''}"`,
         `"${s.site_id || ''}"`,
         `"${s.site_name || ''}"`,
         `"${s.technician_name || ''}"`,
@@ -317,7 +319,7 @@ export default function ResourceMappingScreen({ navigation }: any) {
             <AppIcon name="search" size={14} color="#94a3b8" />
             <TextInput
                 style={styles.searchInput}
-                placeholder="Search by site name or ID..."
+                placeholder="Search Global ID, Name, or ID..."
                 placeholderTextColor="#94a3b8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -428,6 +430,7 @@ export default function ResourceMappingScreen({ navigation }: any) {
                 const filtered = summary.sites.filter(s => 
                     !searchQuery || 
                     s.site_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    s.global_id?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                     s.site_id?.toLowerCase().includes(searchQuery.toLowerCase())
                 );
                 if (filtered.length === 0) return (
