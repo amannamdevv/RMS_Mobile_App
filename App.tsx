@@ -40,6 +40,7 @@ import DCEMMonthlyReportScreen from './src/screens/DCEM/DCEMMonthlyReportScreen'
 
 // NOC Analytics
 import NocAnalyticsScreen from './src/screens/Analytics/NocAnalyticsScreen';
+import BatteryHealthAnalyticsScreen from './src/screens/Analytics/BatteryHealthAnalyticsScreen';
 
 // Maintenance & Tools
 import TTToolScreen from './src/screens/Maintenance/TTToolScreen';
@@ -115,6 +116,7 @@ export default function App() {
           <Stack.Screen name="DCEMAnalytics" component={DCEMAnalyticsScreen} />
           <Stack.Screen name="DCEMMonthlyReport" component={DCEMMonthlyReportScreen} />
           <Stack.Screen name="NocAnalytics" component={NocAnalyticsScreen} />
+          <Stack.Screen name="BatteryHealthAnalytics" component={BatteryHealthAnalyticsScreen} />
           <Stack.Screen name="TTTool" component={TTToolScreen} />
           <Stack.Screen name="SiteMaintenanceTool" component={SiteMaintenanceToolScreen} />
           <Stack.Screen name="AssetHealth" component={Assethealthdashboard} />

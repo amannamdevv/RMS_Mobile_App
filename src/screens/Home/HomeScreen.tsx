@@ -45,6 +45,14 @@ export default function HomeScreen({ navigation, route }: any) {
     fire: 0,
     nightDoor: 0,
   });
+  const [batteryKpi, setBatteryKpi] = useState<any>({
+    healthy: 0,
+    critically_replace: 0,
+    poor_replace: 0,
+    insufficient: 0,
+    inefficient: 0,
+    no_data: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [isSidebarVisible, setSidebarVisible] = useState(false);
 
@@ -74,12 +82,13 @@ export default function HomeScreen({ navigation, route }: any) {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [siteRes, runningRes, offlineRes, smpsRes, rmsRes] = await Promise.all([
+      const [siteRes, runningRes, offlineRes, smpsRes, rmsRes, batteryRes] = await Promise.all([
         api.getSiteStatus({}).catch(() => null),
         api.getSiteRunningStatus({}).catch(() => null),
         api.getNonCommAging({}).catch(() => null),
         api.getSmpsAlarms({}).catch(() => []),
         api.getRmsAlarms({}).catch(() => []),
+        api.getBatteryHealthAnalytics({}).catch(() => null),
       ]);
 
       // ── Site KPI ──
@@ -121,6 +130,18 @@ export default function HomeScreen({ navigation, route }: any) {
       const merged = normaliseAndMerge(smpsRes, rmsRes);
       setAlarmKpi(calcAlarmKpi(merged));
 
+      // ── Battery Health KPI ──
+      if (batteryRes && batteryRes.status === 'success') {
+        const cats = batteryRes.categories || {};
+        setBatteryKpi({
+          healthy: cats.healthy?.count || 0,
+          critically_replace: cats.critically_replace?.count || 0,
+          poor_replace: cats.poor_replace?.count || 0,
+          insufficient: cats.insufficient?.count || 0,
+          inefficient: cats.inefficient?.count || 0,
+          no_data: cats.no_data?.count || 0,
+        });
+      }
     } catch (error) {
       console.log('Home Data Fetch Error', error);
     } finally {
@@ -233,6 +254,30 @@ export default function HomeScreen({ navigation, route }: any) {
               {renderMiniKPI('Minor', alarmKpi.minor, '#eab308')}
               {renderMiniKPI('Fire', alarmKpi.fire, '#ef4444')}
               {renderMiniKPI('Night Door', alarmKpi.nightDoor, '#8b5cf6')}
+            </View>
+          </TouchableOpacity>
+
+          {/* 5. Battery Health Analytics */}
+          <TouchableOpacity
+            style={styles.mainCard}
+            onPress={() => navigation.navigate('BatteryHealthAnalytics')}
+          >
+            <View style={styles.cardHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <AppIcon name="battery" size={20} color="#1e3c72" style={{ marginRight: 8 }} />
+                <Text style={styles.cardHeader}>Battery Health Analytics</Text>
+              </View>
+              <AppIcon name="chevron-right" size={20} color="#1e3c72" />
+            </View>
+            <View style={[styles.statsRow, { marginBottom: 15 }]}>
+              {renderMiniKPI('Healthy', batteryKpi.healthy, '#16a34a')}
+              {renderMiniKPI('Critical', batteryKpi.critically_replace, '#dc2626')}
+              {renderMiniKPI('Poor', batteryKpi.poor_replace, '#ea580c')}
+            </View>
+            <View style={styles.statsRow}>
+              {renderMiniKPI('Insufficient', batteryKpi.insufficient, '#ca8a04')}
+              {renderMiniKPI('Inefficient', batteryKpi.inefficient, '#0891b2')}
+              {renderMiniKPI('No Data', batteryKpi.no_data, '#6b7280')}
             </View>
           </TouchableOpacity>
 

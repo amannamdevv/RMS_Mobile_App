@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    ActivityIndicator, SafeAreaView, Dimensions, RefreshControl,
+    ActivityIndicator, Dimensions, RefreshControl,
     TextInput, Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '../../api';
 import LinearGradient from 'react-native-linear-gradient';
 import Sidebar from '../../components/Sidebar';
@@ -155,23 +156,34 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
 
     return (
         <View style={IS.wrap}>
-            {/* IMEI header */}
-            <LinearGradient colors={['#34495e', '#2c3e50']} style={IS.header}>
-                <View style={{ flex: 1 }}>
-                    <Text style={IS.imeiTxt}>IMEI: {row.imei}</Text>
-                    <Text style={IS.siteTxt}>{row.site_name}  ·  Global ID: {row.global_id || row.site_id || '—'}</Text>
+            <View style={IS.header}>
+                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    <View style={IS.tag}>
+                        <Text style={IS.imeiTxt}>IMEI: {row.imei}</Text>
+                    </View>
+                    <View style={IS.tag}>
+                        <Text style={IS.siteTxt}>{row.site_name}</Text>
+                    </View>
+                    <View style={IS.tag}>
+                        <Text style={IS.siteTxt}>Global ID: {row.global_id || row.site_id || '—'}</Text>
+                    </View>
+                    <View style={[IS.tag, { backgroundColor: 'rgba(219, 39, 119, 0.2)' }]}>
+                        <Text style={[IS.siteTxt, { color: '#fff' }]}>{row.total_readings} Readings</Text>
+                    </View>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={IS.monthTxt}>{row.month_year}</Text>
-                    <Text style={IS.readingsTxt}>{row.total_readings} readings</Text>
+                <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                    <View style={IS.tag}>
+                        <Text style={IS.monthTxt}>{row.month_year}</Text>
+                    </View>
                 </View>
-            </LinearGradient>
+            </View>
 
             {/* Summary KPIs */}
             <View style={IS.kpiSection}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                     {[
-                        { l: 'Total Consumption', v: `${data.total_load_consumed || 0} kWh`, c: '#3b82f6' },
+                        { l: 'Total Consumption', v: `${data.total_load_consumed || 0} kWh`, c: '#10b981' },
+                        { l: 'Total Readings', v: String(row.total_readings || 0), c: '#db2777' },
                         { l: 'Overall Avg Current', v: `${fmt(data.total_avgCurr_all)}A`, c: '#ef4444' },
                         { l: 'Max Current', v: `${fmt(row.overall_max_current)}A`, c: '#f59e0b' },
                         { l: 'Min Current', v: `${fmt(row.overall_min_current)}A`, c: '#10b981' },
@@ -191,7 +203,7 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
             </View>
 
             {/* Channel cards */}
-            <View style={{ paddingHorizontal: 14, paddingBottom: 14 }}>
+            <View style={{ paddingHorizontal: 14, paddingBottom: 14, backgroundColor: '#fff', marginHorizontal: 14, borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }}>
                 <Text style={IS.sectionTitle}>Channel-wise Energy Analysis</Text>
                 {[1, 2, 3, 4].map(n => (
                     <ChannelCard
@@ -210,8 +222,8 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
             </View>
 
             {/* Summary table row */}
-            <View style={IS.tableWrap}>
-                <Text style={IS.sectionTitle}>Summary Table</Text>
+            <View style={[IS.tableWrap, { backgroundColor: '#fff', marginHorizontal: 14, borderRadius: 14, marginTop: 12, padding: 14 }]}>
+                <Text style={[IS.sectionTitle, { paddingHorizontal: 0 }]}>Summary Table</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={true}>
                     <View>
                         {/* Header */}
@@ -274,13 +286,32 @@ function ImeiSection({ row, data }: { row: any; data: any }) {
 
 const IS = StyleSheet.create({
     wrap: { marginBottom: 20 },
-    header: { padding: 16, flexDirection: 'row', alignItems: 'center' },
-    imeiTxt: { color: '#fff', fontWeight: '800', fontSize: 13, marginBottom: 4 },
-    siteTxt: { color: 'rgba(255,255,255,0.85)', fontSize: 11 },
-    monthTxt: { color: '#fff', fontWeight: '800', fontSize: 12 },
-    readingsTxt: { color: 'rgba(255,255,255,0.75)', fontSize: 10 },
-    kpiSection: { paddingHorizontal: 14, paddingVertical: 12 },
-    kpiCard: { backgroundColor: '#fff', borderRadius: 10, padding: 10, minWidth: 110, borderTopWidth: 3, elevation: 1, alignItems: 'center' },
+    header: { 
+        padding: 12, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#1e3c72', 
+        borderBottomWidth: 1, 
+        borderBottomColor: 'rgba(255,255,255,0.1)',
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
+        marginHorizontal: 14,
+        marginTop: 10
+    },
+    tag: {
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
+    imeiTxt: { color: '#fff', fontWeight: '800', fontSize: 12 },
+    siteTxt: { color: 'rgba(255,255,255,0.9)', fontSize: 11, fontWeight: '700' },
+    monthTxt: { color: '#fff', fontWeight: '800', fontSize: 11 },
+    readingsTxt: { color: '#db2777', fontSize: 10, fontWeight: '800' },
+    kpiSection: { paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#fff', marginHorizontal: 14 },
+    kpiCard: { backgroundColor: '#f8fafc', borderRadius: 10, padding: 10, minWidth: 110, borderTopWidth: 3, elevation: 1, alignItems: 'center' },
     kpiVal: { fontSize: 14, fontWeight: '800' },
     kpiLbl: { fontSize: 8, color: '#64748b', fontWeight: '700', marginTop: 2, textAlign: 'center' },
     sectionTitle: { fontSize: 13, fontWeight: '800', color: '#1e293b', marginBottom: 12, paddingHorizontal: 14 },
@@ -351,25 +382,27 @@ export default function DCEMMonthlyReportScreen({ navigation, route }: any) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={{ flex: 1, alignSelf: 'center', width: '100%', maxWidth: 650 }}>
-            <AppHeader
-                title="DCEM MONTHLY REPORT"
-                subtitle={`${MONTHS[parseInt(month) - 1]} ${year}`}
-                leftAction={route.params?.showBack ? 'back' : 'menu'}
-                onLeftPress={() => route.params?.showBack ? navigation.goBack() : setSidebarVisible(true)}
-                rightActions={[
-                    { icon: exporting ? 'loader' : 'download', onPress: () => {
-                        const csv = convertToCSV(rows, data);
-                        if (!csv) return Alert.alert('No data', 'Nothing to download.');
-                        setExporting(true);
-                        const fileName = `DCEM_Monthly_${new Date().getTime()}.csv`;
-                        const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-                        RNFS.writeFile(filePath, csv, 'utf8')
-                            .then(() => Share.open({ url: `file://${filePath}`, type: 'text/csv' }))
-                            .catch(err => console.log('Export error:', err))
-                            .finally(() => setExporting(false));
-                    }},
-                ]}
-            />
+                <AppHeader
+                    title="DCEM MONTHLY REPORT"
+                    subtitle={`${MONTHS[parseInt(month) - 1]} ${year}`}
+                    leftAction={route.params?.showBack ? 'back' : 'menu'}
+                    onLeftPress={() => route.params?.showBack ? navigation.goBack() : setSidebarVisible(true)}
+                    rightActions={[
+                        {
+                            icon: exporting ? 'loader' : 'download', onPress: () => {
+                                const csv = convertToCSV(rows, data);
+                                if (!csv) return Alert.alert('No data', 'Nothing to download.');
+                                setExporting(true);
+                                const fileName = `DCEM_Monthly_${new Date().getTime()}.csv`;
+                                const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+                                RNFS.writeFile(filePath, csv, 'utf8')
+                                    .then(() => Share.open({ url: `file://${filePath}`, type: 'text/csv' }))
+                                    .catch(err => console.log('Export error:', err))
+                                    .finally(() => setExporting(false));
+                            }
+                        },
+                    ]}
+                />
 
             <ScrollView
                 style={{ flex: 1, backgroundColor: '#f1f5f9' }}
@@ -378,22 +411,30 @@ export default function DCEMMonthlyReportScreen({ navigation, route }: any) {
             >
                 {/* Filter section */}
                 <View style={styles.filterCard}>
-                    <Text style={styles.filterTitle}>Generate Report</Text>
+                    <View style={styles.filterHeader}>
+                        <AppIcon name="file-text" size={16} color="#fff" />
+                        <Text style={styles.filterTitle}>Generate Report</Text>
+                    </View>
 
-                    <Text style={styles.filterLabel}>IMEI Numbers (comma separated)</Text>
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.filterLabel}>IMEI Numbers (comma separated)</Text>
+                    </View>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, passedImei ? styles.inputDisabled : {}]}
                         value={imei}
                         onChangeText={setImei}
                         placeholder="e.g. 123456789012345, 987654321098765"
                         placeholderTextColor="#94a3b8"
                         multiline
                         numberOfLines={2}
+                        editable={!passedImei}
                     />
 
                     <View style={styles.filterRow}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.filterLabel}>Year</Text>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.filterLabel}>Year</Text>
+                            </View>
                             <TextInput
                                 style={styles.input}
                                 value={year}
@@ -405,7 +446,9 @@ export default function DCEMMonthlyReportScreen({ navigation, route }: any) {
                         </View>
                         <View style={{ width: 12 }} />
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.filterLabel}>Month (1-12)</Text>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.filterLabel}>Month (1-12)</Text>
+                            </View>
                             <TextInput
                                 style={styles.input}
                                 value={month}
@@ -540,10 +583,13 @@ const styles = StyleSheet.create({
     hTitle: { color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 1 },
     hSub: { color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: '600', marginTop: 2 },
 
-    filterCard: { margin: 14, backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2 },
-    filterTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a', marginBottom: 14 },
-    filterLabel: { fontSize: 10, fontWeight: '700', color: '#64748b', marginBottom: 4, marginTop: 8 },
-    input: { backgroundColor: '#f1f5f9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 12, color: '#0f172a', fontWeight: '600' },
+    filterCard: { margin: 14, backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2, borderWidth: 1, borderColor: '#e2e8f0' },
+    filterHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#1e3c72', padding: 10, margin: -16, marginBottom: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
+    filterTitle: { fontSize: 13, fontWeight: '800', color: '#fff' },
+    labelContainer: { backgroundColor: '#f1f5f9', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginBottom: 6, marginTop: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+    filterLabel: { fontSize: 10, fontWeight: '800', color: '#475569' },
+    input: { backgroundColor: '#f1f5f9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, color: '#0f172a', fontWeight: '800', borderWidth: 1, borderColor: '#e2e8f0' },
+    inputDisabled: { backgroundColor: '#f8fafc', color: '#64748b', borderColor: '#f1f5f9', opacity: 0.8 },
     filterRow: { flexDirection: 'row', marginTop: 4 },
 
     searchContainer: { 
@@ -565,11 +611,11 @@ const styles = StyleSheet.create({
     emptySubtitle: { color: '#94a3b8', fontSize: 14, marginTop: 4 },
 
     monthChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f1f5f9', marginRight: 6, borderWidth: 1, borderColor: '#e2e8f0' },
-    monthChipActive: { backgroundColor: '#2c3e50', borderColor: '#2c3e50' },
+    monthChipActive: { backgroundColor: '#1e3c72', borderColor: '#1e3c72' },
     monthChipTxt: { fontSize: 11, fontWeight: '700', color: '#64748b' },
     monthChipTxtActive: { color: '#fff' },
 
-    genBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#2c3e50', borderRadius: 12, paddingVertical: 14 },
+    genBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#1e3c72', borderRadius: 12, paddingVertical: 14 },
     genBtnTxt: { color: '#fff', fontWeight: '800', fontSize: 14 },
 
     errorBox: { margin: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: 10, padding: 12 },

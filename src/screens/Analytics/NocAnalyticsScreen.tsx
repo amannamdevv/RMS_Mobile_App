@@ -417,7 +417,7 @@ export default function NocAnalytics({ navigation }: any) {
             <View style={styles.incidentCard}>
                 {/* Row 1: Event ID + Badges */}
                 <View style={styles.cardRow}>
-                    <Text style={styles.eventId}>EID: {eventId}</Text>
+                    <Text style={styles.eventId}>Event ID: {eventId}</Text>
                     <View style={styles.badgeRow}>
                         <View style={[styles.badge, { backgroundColor: sevBg, borderColor: sevColor }]}>
                             <Text style={[styles.badgeText, { color: sevColor }]}>{sevLabel}</Text>

@@ -33,6 +33,7 @@ export type RootStackParamList = {
   EnergyRunHoursDetails: { category: string, date_from: string, date_to: string };
   SiteLogs: undefined;
   HistoricalAlarms: undefined;
+  BatteryHealthAnalytics: undefined;
 
   TTTool: { initialTab?: 'equipment' | 'repairs' | 'tickets' | 'raise' };
   SiteMaintenanceTool: { initialTab?: 'infra' | 'smps' | 'dcem' };

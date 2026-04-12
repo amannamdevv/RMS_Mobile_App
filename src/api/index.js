@@ -341,6 +341,16 @@ export const api = {
     return response.data;
   },
 
+  // ── BATTERY HEALTH ──
+  getBatteryHealthAnalytics: async (params = {}) => {
+    const response = await djangoApi.get('/api/battery-health-analytics/', { params });
+    return response.data;
+  },
+  getBatteryHealthReport: async (params = {}) => {
+    const response = await djangoApi.get('/api/battery-health-report/', { params });
+    return response.data;
+  },
+
   // ── METADATA & DROPDOWNS ──
   getStates: async () => {
     const response = await djangoApi.get('/merge_get_state_name/');
