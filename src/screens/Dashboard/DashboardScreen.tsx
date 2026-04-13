@@ -40,6 +40,14 @@ export default function DashboardScreen({ navigation }: Props) {
   const [autoKpi, setAutoKpi] = useState<any>(null);
   const [uptimeKpi, setUptimeKpi] = useState<any>(null);
   const [distKpi, setDistKpi] = useState<any>({ bsc: 0, hub: 0, indoor: 0, outdoor: 0, eb: 0, dg: 0, rtt: 0, rtp: 0, gbt: 0, 'small-cell': 0 });
+  const [batteryKpi, setBatteryKpi] = useState<any>({
+    healthy: 0,
+    critically_replace: 0,
+    poor_replace: 0,
+    insufficient: 0,
+    inefficient: 0,
+    no_data: 0,
+  });
 
   useEffect(() => {
     const loadName = async () => {
@@ -64,9 +72,10 @@ export default function DashboardScreen({ navigation }: Props) {
         api.getSiteDistributionCounts({}),
         api.getDgPresence({}),
         api.getEbPresence({}),
+        api.getBatteryHealthAnalytics({}).catch(() => null),
       ]);
 
-      const [healthRes, vitalsRes, autoRes, uptimeRes, distRes, dgRes, ebRes] = results;
+      const [healthRes, vitalsRes, autoRes, uptimeRes, distRes, dgRes, ebRes, batteryRes] = results;
 
       if (healthRes) {
         setHealthKpi(healthRes.status === 'success' ? (healthRes.data || healthRes) : healthRes);
@@ -106,6 +115,19 @@ export default function DashboardScreen({ navigation }: Props) {
       }
       setDistKpi(mergedDist);
 
+      // Battery Health KPI
+      if (batteryRes && batteryRes.status === 'success') {
+        const cats = batteryRes.categories || {};
+        setBatteryKpi({
+          healthy: cats.healthy?.count || 0,
+          critically_replace: cats.critically_replace?.count || 0,
+          poor_replace: cats.poor_replace?.count || 0,
+          insufficient: cats.insufficient?.count || 0,
+          inefficient: cats.inefficient?.count || 0,
+          no_data: cats.no_data?.count || 0,
+        });
+      }
+
     } catch (e) {
       console.log('Dashboard Load Error:', e);
     } finally {
@@ -141,7 +163,6 @@ export default function DashboardScreen({ navigation }: Props) {
         <AppHeader title="DASHBOARD" leftAction="menu" onLeftPress={() => setSidebarVisible(true)} />
 
         <ScrollView contentContainerStyle={styles.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchDashboardData(); }} />}>
-          <Text style={styles.sectionTitle}>Real-Time Monitoring</Text>
 
           {/* 1. SITE HEALTH */}
           <TouchableOpacity style={styles.mainCard} onPress={() => navigation.navigate('SiteHealth')}>
@@ -154,6 +175,30 @@ export default function DashboardScreen({ navigation }: Props) {
             <View style={styles.cardHeaderRow}><View style={styles.headerLeft}><AppIcon name="activity" size={20} color="#3b82f6" style={{ marginRight: 10 }} /><Text style={styles.cardTitle}>Site Vitals</Text></View><AppIcon name="chevron-right" size={20} color="#1e3c72" /></View>
             <View style={styles.statsRow}>{renderMiniKPI('Critical', vitalsCounts?.critical?.count ?? vitalsCounts?.critical, '#ed4040', 'SiteVitals', { range: 'critical' })}{renderMiniKPI('At Risk', vitalsCounts?.low?.count ?? vitalsCounts?.low, '#014F86', 'SiteVitals', { range: 'low' })}{renderMiniKPI('Operational', vitalsCounts?.normal?.count ?? vitalsCounts?.normal, '#2A6F97', 'SiteVitals', { range: 'normal' })}</View>
             <View style={{ height: 15 }} /><View style={styles.statsRow}>{renderMiniKPI('Normal', vitalsCounts?.high?.count ?? vitalsCounts?.high, '#61A5C2', 'SiteVitals', { range: 'high' })}{renderMiniKPI('NA', vitalsCounts?.nc?.count ?? vitalsCounts?.nc, '#9e9e9e', 'SiteVitals', { range: 'na' })}{renderMiniKPI('Offline', vitalsCounts?.noncomm?.count ?? vitalsCounts?.noncomm, '#ef4444', 'SiteVitals', { range: 'noncomm' })}</View>
+          </TouchableOpacity>
+
+          {/* 2.5 Battery Health Analytics */}
+          <TouchableOpacity
+            style={styles.mainCard}
+            onPress={() => navigation.navigate('BatteryHealthAnalytics')}
+          >
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.headerLeft}>
+                <AppIcon name="battery" size={20} color="#1e3c72" style={{ marginRight: 8 }} />
+                <Text style={styles.cardTitle}>Battery Health Analytics</Text>
+              </View>
+              <AppIcon name="chevron-right" size={20} color="#1e3c72" />
+            </View>
+            <View style={[styles.statsRow, { marginBottom: 15 }]}>
+              {renderMiniKPI('Healthy', batteryKpi.healthy, '#16a34a', 'BatteryHealthAnalytics')}
+              {renderMiniKPI('Critical', batteryKpi.critically_replace, '#dc2626', 'BatteryHealthAnalytics')}
+              {renderMiniKPI('Poor', batteryKpi.poor_replace, '#ea580c', 'BatteryHealthAnalytics')}
+            </View>
+            <View style={styles.statsRow}>
+              {renderMiniKPI('Insufficient', batteryKpi.insufficient, '#ca8a04', 'BatteryHealthAnalytics')}
+              {renderMiniKPI('Inefficient', batteryKpi.inefficient, '#0891b2', 'BatteryHealthAnalytics')}
+              {renderMiniKPI('No Data', batteryKpi.no_data, '#6b7280', 'BatteryHealthAnalytics')}
+            </View>
           </TouchableOpacity>
 
           {/* 3. UPTIME SUMMARY */}
