@@ -185,7 +185,7 @@ export default function LiveAlarmsScreen({ route, navigation }: Props) {
         const alarmName = getAlarmName(item);
         const globalId = item.global_id || item.globel_id || item.site_id || item.imei || 'N/A';
         const siteStatus = item.site_running_status || 'N/A';
-        const alarmType = item.alarm_type || item.type || (item._alarmSource === 'tpms' ? 'RMS' : 'SMPS');
+        const alarmType = item._alarmSource === 'tpms' ? 'RMS' : (item.alarm_type || item.type || 'SMPS');
         const deviceMake = item.device_make || item.make || 'N/A';
 
         const startVolt = item.start_volt != null ? `${parseFloat(item.start_volt).toFixed(2)}V` : 'N/A';

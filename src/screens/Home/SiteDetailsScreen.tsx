@@ -141,55 +141,85 @@ export default function SiteDetailsScreen({ route, navigation }: Props) {
       </SectionCard>
 
       <SectionCard title="Real Time Alarm Status">
-        {data.current_alarms?.length > 0
-          ? (
-            <>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.thCell, { flex: 2 }]}>Alarm Type</Text>
-                <Text style={[styles.thCell, { flex: 1 }]}>Status</Text>
-                <Text style={[styles.thCell, { flex: 1.5 }]}>Active Since</Text>
-                <Text style={[styles.thCell, { flex: 2 }]}>Timestamp</Text>
-              </View>
-              {data.current_alarms.map((a: any, i: number) => (
-                <View key={i} style={[styles.tableRow, i % 2 === 0 && styles.tableRowAlt]}>
-                  <Text style={[styles.tdCell, { flex: 2 }]}>{a.name}</Text>
-                  <View style={[{ flex: 1 }, styles.tdCellCenter]}>
-                    <View style={styles.badgeActive}><Text style={styles.badgeText}>Active</Text></View>
+        {data.current_alarms?.length > 0 ? (
+          <View style={styles.alarmListContainer}>
+            {data.current_alarms.map((a: any, i: number) => {
+              const activeSince = a.active_time_formatted || `${a.hours_active} hrs`;
+              const timestamp = a.timestamp ? new Date(a.timestamp).toLocaleString([], {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              }) : '--';
+              
+              return (
+                <View key={i} style={styles.alarmRowCard}>
+                  <View style={styles.alarmCardHead}>
+                    <Text style={styles.alarmCardName}>{a.name}</Text>
+                    <View style={styles.badgeActive}>
+                      <Icon name="alert-circle" size={10} color="#fff" style={{ marginRight: 4 }} />
+                      <Text style={styles.badgeText}>ACTIVE</Text>
+                    </View>
                   </View>
-                  <Text style={[styles.tdCell, { flex: 1.5 }]}>{a.active_time_formatted || `${a.hours_active} hrs`}</Text>
-                  <Text style={[styles.tdCell, { flex: 2 }]}>{a.timestamp ? new Date(a.timestamp).toLocaleString() : '--'}</Text>
+                  <View style={styles.alarmCardDetails}>
+                    <View style={styles.alarmCardInfo}>
+                      <Icon name="clock" size={12} color="#64748B" />
+                      <Text style={styles.alarmCardInfoTxt}> {activeSince}</Text>
+                    </View>
+                    <View style={styles.alarmCardInfo}>
+                      <Icon name="calendar" size={12} color="#64748B" />
+                      <Text style={styles.alarmCardInfoTxt}> {timestamp}</Text>
+                    </View>
+                  </View>
                 </View>
-              ))}
-            </>
-          )
-          : <EmptyState text="No active alarms" />}
+              );
+            })}
+          </View>
+        ) : <EmptyState text="No active alarms" />}
       </SectionCard>
 
       <SectionCard title="Recently Closed Alarms">
-        {data.closed_alarms?.length > 0
-          ? (
-            <>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.thCell, { flex: 2 }]}>Alarm Type</Text>
-                <Text style={[styles.thCell, { flex: 1 }]}>Status</Text>
-                <Text style={[styles.thCell, { flex: 1.5 }]}>Duration</Text>
-                <Text style={[styles.thCell, { flex: 2 }]}>Start Time</Text>
-                <Text style={[styles.thCell, { flex: 2 }]}>End Time</Text>
-              </View>
-              {data.closed_alarms.map((a: any, i: number) => (
-                <View key={i} style={[styles.tableRow, i % 2 === 0 && styles.tableRowAlt]}>
-                  <Text style={[styles.tdCell, { flex: 2 }]}>{a.name}</Text>
-                  <View style={[{ flex: 1 }, styles.tdCellCenter]}>
-                    <View style={styles.badgeClosed}><Text style={styles.badgeText}>Closed</Text></View>
+        {data.closed_alarms?.length > 0 ? (
+          <View style={styles.alarmListContainer}>
+            {data.closed_alarms.map((a: any, i: number) => {
+              const duration = a.duration_formatted || '--';
+              const start = a.start_time ? new Date(a.start_time).toLocaleString([], {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+              }) : '--';
+              const end = a.end_time ? new Date(a.end_time).toLocaleString([], {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+              }) : '--';
+
+              return (
+                <View key={i} style={styles.alarmRowCard}>
+                  <View style={styles.alarmCardHead}>
+                    <Text style={styles.alarmCardName}>{a.name}</Text>
+                    <View style={styles.badgeClosed}>
+                      <Icon name="check-circle" size={10} color="#fff" style={{ marginRight: 4 }} />
+                      <Text style={styles.badgeText}>CLOSED</Text>
+                    </View>
                   </View>
-                  <Text style={[styles.tdCell, { flex: 1.5 }]}>{a.duration_formatted || '--'}</Text>
-                  <Text style={[styles.tdCell, { flex: 2 }]}>{a.start_time ? new Date(a.start_time).toLocaleString() : '--'}</Text>
-                  <Text style={[styles.tdCell, { flex: 2 }]}>{a.end_time ? new Date(a.end_time).toLocaleString() : '--'}</Text>
+                  
+                  <View style={styles.alarmCardDetails}>
+                    <View style={styles.alarmCardInfo}>
+                      <Icon name="clock" size={12} color="#64748B" />
+                      <Text style={styles.alarmCardInfoTxt}> {duration}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.alarmCardTimeline}>
+                    <View style={styles.timelinePoint}>
+                      <Text style={styles.timelineLabel}>START</Text>
+                      <Text style={styles.timelineVal}>{start}</Text>
+                    </View>
+                    <Icon name="arrow-right" size={12} color="#CBD5E1" style={{ marginHorizontal: 10 }} />
+                    <View style={styles.timelinePoint}>
+                      <Text style={styles.timelineLabel}>END</Text>
+                      <Text style={styles.timelineVal}>{end}</Text>
+                    </View>
+                  </View>
                 </View>
-              ))}
-            </>
-          )
-          : <EmptyState text="No closed alarms today" />}
+              );
+            })}
+          </View>
+        ) : <EmptyState text="No closed alarms today" />}
       </SectionCard>
     </View>
   );
@@ -631,18 +661,79 @@ const styles = StyleSheet.create({
 
   // Badges
   badgeConfig: { backgroundColor: '#2A6F97', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeActive: { backgroundColor: '#DC2626', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeClosed: { backgroundColor: '#2E7D32', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  badgeActive: { backgroundColor: '#DC2626', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  badgeClosed: { backgroundColor: '#2E7D32', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  badgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
   // Table
   tableHeader: { flexDirection: 'row', backgroundColor: '#EBF2FA', paddingVertical: 8, paddingHorizontal: 4, borderRadius: 6, marginBottom: 2 },
   thCell: { fontSize: 11, fontWeight: '700', color: '#01497C', paddingHorizontal: 4 },
   tableRow: { flexDirection: 'row', paddingVertical: 9, paddingHorizontal: 4, borderBottomWidth: 1, borderColor: '#F0F5FA' },
   tableRowAlt: { backgroundColor: '#FAFCFF' },
-  tdCell: { fontSize: 12, color: '#334155', paddingHorizontal: 4 },
-  tdCellBold: { fontSize: 12, color: '#01497C', fontWeight: '600', paddingHorizontal: 4 },
-  tdCellCenter: { alignItems: 'flex-start', justifyContent: 'center' },
+  tdCell: { fontSize: 10, color: '#334155', paddingHorizontal: 4 },
+  tdCellBold: { fontSize: 10, color: '#01497C', fontWeight: '600', paddingHorizontal: 4 },
+  tdCellCenter: { alignItems: 'center', justifyContent: 'center' },
+
+  // Alarm Cards Styling
+  alarmListContainer: { gap: 12 },
+  alarmRowCard: { 
+    backgroundColor: '#F8FAFC', 
+    borderRadius: 12, 
+    padding: 12, 
+    borderWidth: 1, 
+    borderColor: '#E2EBF4' 
+  },
+  alarmCardHead: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 10 
+  },
+  alarmCardName: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#1C2F3E', 
+    flex: 1, 
+    marginRight: 10 
+  },
+  alarmCardDetails: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 15, 
+    marginBottom: 8 
+  },
+  alarmCardInfo: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  alarmCardInfoTxt: { 
+    fontSize: 12, 
+    color: '#64748B', 
+    fontWeight: '600' 
+  },
+  alarmCardTimeline: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
+    borderRadius: 8, 
+    padding: 8, 
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
+  },
+  timelinePoint: { flex: 1 },
+  timelineLabel: { 
+    fontSize: 9, 
+    color: '#94A3B8', 
+    fontWeight: '800', 
+    letterSpacing: 0.5, 
+    marginBottom: 2 
+  },
+  timelineVal: { 
+    fontSize: 11, 
+    color: '#334155', 
+    fontWeight: '700' 
+  },
 
   // Empty
   emptyText: { textAlign: 'center', color: '#94A3B8', padding: 20, fontSize: 13, fontStyle: 'italic' },

@@ -181,7 +181,7 @@ function AlarmCard({ item }: { item: any }) {
             <View style={AC.quickRow}>
                 {[
                     { l: 'Duration', v: item.active_time_formatted || '—' },
-                    { l: 'Type', v: item.alarm_type || '—' },
+                    { l: 'Type', v: (item.alarm_type?.toLowerCase() === 'tpms' || item.alarm_type?.toLowerCase() === 'rms') ? 'RMS' : (item.alarm_type || '—') },
                     { l: 'Site Status', v: ss || '—', color: ssCol },
                     { l: 'Start Volt', v: item.start_volt ? `${parseFloat(item.start_volt).toFixed(2)}V` : '—' },
                 ].map(x => (
@@ -202,7 +202,7 @@ function AlarmCard({ item }: { item: any }) {
                         { l: 'Duration', v: item.active_time_formatted || '—' },
                         { l: 'Start Volt', v: item.start_volt ? `${parseFloat(item.start_volt).toFixed(2)}V` : '—' },
                         { l: 'End Volt', v: item.end_volt ? `${parseFloat(item.end_volt).toFixed(2)}V` : '—' },
-                        { l: 'Alarm Type', v: item.alarm_type || '—' },
+                        { l: 'Alarm Type', v: (item.alarm_type?.toLowerCase() === 'tpms' || item.alarm_type?.toLowerCase() === 'rms') ? 'RMS' : (item.alarm_type || '—') },
                         { l: 'Site Status', v: item.site_running_status || '—' },
                     ].map(r => (
                         <View key={r.l} style={AC.detailRow}>
@@ -467,7 +467,7 @@ export default function HistoricalAlarmsScreen({ navigation }: any) {
             `"${a.active_time_formatted || ''}"`,
             `"${fmtTs(a.start_time_display || a.start_time || a.created_dt)}"`,
             `"${a.end_time_display || a.end_time ? fmtTs(a.end_time_display || a.end_time) : '—'}"`,
-            `"${a.alarm_type || ''}${a.vendor ? ` (${a.vendor})` : ''}"`,
+            `"${(a.alarm_type?.toLowerCase() === 'tpms' || a.alarm_type?.toLowerCase() === 'rms') ? 'RMS' : (a.alarm_type || '')}${a.vendor ? ` (${a.vendor})` : ''}"`,
             `"${a.start_volt ? parseFloat(a.start_volt).toFixed(2) + 'V' : '—'}"`,
             `"${a.end_volt ? parseFloat(a.end_volt).toFixed(2) + 'V' : 'N/A'}"`,
         ].join(','));

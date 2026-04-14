@@ -254,7 +254,7 @@ export default function NocAnalytics({ navigation }: any) {
                     if (st) durSecs = Math.max(0, Math.floor(((et ? new Date(et) : new Date()).getTime() - new Date(st).getTime()) / 1000));
                 }
                 return [
-                    `"${a.alarm_type || ''}"`,
+                    `"${(a.alarm_type?.toLowerCase() === 'tpms' || a.alarm_type?.toLowerCase() === 'rms') ? 'RMS' : (a.alarm_type || '')}"`,
                     `"${a.event_id || a.alarm_id || ''}"`,
                     `"${a.global_id || ''}"`,
                     `"${a.site_id || ''}"`,
