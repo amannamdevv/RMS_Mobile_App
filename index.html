@@ -5,71 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - RMS</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: #f4f7f9; }
-        .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #1e3c72; border-bottom: 3px solid #1e3c72; padding-bottom: 10px; margin-bottom: 20px; }
-        h2 { color: #2a5298; margin-top: 30px; border-left: 5px solid #2a5298; padding-left: 15px; }
-        p, li { margin-bottom: 12px; font-size: 16px; }
-        ul { padding-left: 20px; }
-        .highlight { font-weight: bold; color: #1e3c72; }
-        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
-        .company-name { font-weight: bold; font-size: 1.2em; color: #333; }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #2a5298;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Privacy Policy for RMS</h1>
-    <p><strong>Effective Date:</strong> April 15, 2026</p>
-    <p class="company-name">Developed by: Shroti Telecom Pvt. Ltd.</p>
+<h1>Privacy Policy for RMS</h1>
+<p><strong>Effective Date:</strong> April 15, 2026</p>
+<p><strong>Last Updated:</strong> April 15, 2026</p>
+<p><strong>Developed by:</strong> Shroti Telecom Pvt. Ltd.</p>
 
-    <h2>1. Introduction</h2>
-    <p>Shroti Telecom Pvt. Ltd. ("we", "our", or "us") operates the RMS Pro mobile application (the "App"). This Privacy Policy explains how we collect, use, store, share, and protect information when you use our App. By using RMS Pro, you agree to the terms of this Privacy Policy.</p>
-    <p>This App is intended solely for authorized enterprise users — specifically telecom field operators, NOC engineers, and site managers employed by or contracted with Shroti Telecom Pvt. Ltd. or its clients.</p>
+<h2>1. Introduction</h2>
+<p>Shroti Telecom Pvt. Ltd. ("we", "our", or "us") operates the RMS mobile application (the "App"). This Privacy Policy explains how we collect, use, store, share, and protect information when you use our App. By using RMS, you agree to the terms of this Privacy Policy.</p>
 
-    <h2>2. Information We Collect</h2>
-    <p><span class="highlight">a) Information You Provide:</span></p>
-    <ul>
-        <li>Mobile phone number (used for OTP-based login authentication)</li>
-        <li>Full name (stored locally on device after login)</li>
-    </ul>
-    <p><span class="highlight">b) Information Collected Automatically:</span></p>
-    <ul>
-        <li>Session authentication tokens (stored in device AsyncStorage)</li>
-        <li>App usage data (screen navigation, API calls) — used solely for operational functionality</li>
-    </ul>
-    <p><span class="highlight">c) Information We Do NOT Collect:</span></p>
-    <p>We do not collect precise GPS location data, device contacts, camera images (unless user-initiated), biometric data, or advertising identifiers. We do not use third-party analytics SDKs.</p>
+<p>This App is intended solely for authorized enterprise users — specifically telecom field operators, NOC engineers, and site managers employed by or contracted with Shroti Telecom Pvt. Ltd. or its clients.</p>
 
-    <h2>3. How We Use the Information</h2>
-    <p>We use the information collected solely for:</p>
-    <ul>
-        <li><span class="highlight">Authentication:</span> Verifying user identity via OTP before granting access to site data.</li>
-        <li><span class="highlight">Personalization:</span> Displaying the logged-in user's name in the app interface.</li>
-        <li><span class="highlight">Operational Function:</span> Fetching and displaying telecom site monitoring data from our backend API servers.</li>
-        <li><span class="highlight">File Sharing:</span> Enabling users to export and share reports via device sharing mechanisms.</li>
-    </ul>
+<h2>2. Information We Collect</h2>
 
-    <h2>4. Data Storage & Security</h2>
-    <p><span class="highlight">Local Storage:</span> User authentication tokens and the user's full name are stored locally on the device using React Native AsyncStorage. This data is encrypted at the OS level.</p>
-    <p><span class="highlight">Server Storage:</span> All site monitoring data (alarms, energy readings, uptime metrics) is stored on Shroti Telecom Pvt. Ltd.'s backend servers.</p>
-    <p><span class="highlight">Data Security:</span> All API communications are conducted over HTTPS (TLS encryption). Authentication uses OTP-based two-factor verification.</p>
+<h3>a) Information You Provide:</h3>
+<ul>
+    <li>Mobile phone number (used for OTP-based login authentication)</li>
+    <li>Full name (stored locally on device after login)</li>
+</ul>
 
-    <h2>5. Data Sharing</h2>
-    <p>We do not sell, rent, or trade your personal information to any third parties. Data is only shared within the organization for authorized operational purposes or if required by law (Legal Compliance).</p>
+<h3>b) Information Collected Automatically:</h3>
+<ul>
+    <li>Session authentication tokens (stored in device AsyncStorage)</li>
+    <li>App usage data (screen navigation, API calls) — used solely for operational functionality</li>
+</ul>
 
-    <h2>6. Children's Privacy</h2>
-    <p>RMS Pro is strictly a professional enterprise application intended for adults aged 18 and above. We do not knowingly collect personal information from individuals under the age of 18.</p>
+<h3>c) Information We Do NOT Collect:</h3>
+<ul>
+    <li>We do not collect precise GPS location data</li>
+    <li>We do not collect contacts</li>
+    <li>We do not collect camera or microphone data</li>
+    <li>We do not collect biometric data</li>
+    <li>We do not use advertising identifiers or third-party analytics SDKs</li>
+</ul>
 
-    <h2>7. Your Rights</h2>
-    <p>As a user of RMS Pro, you have the right to access, correct, or request deletion of data associated with your account. You can stop using the App at any time; session data will be removed upon logout.</p>
+<h2>3. How We Use the Information</h2>
+<ul>
+    <li>Authentication: Verifying user identity via OTP</li>
+    <li>Personalization: Displaying the logged-in user's name</li>
+    <li>Operational Function: Displaying telecom site monitoring data</li>
+    <li>File Sharing: Enabling report export and sharing</li>
+</ul>
 
-    <div class="footer">
-        <p><strong>Contact Information:</strong></p>
-        <p>Shroti Telecom Pvt. Ltd.<br>
-        Email: <a href="mailto:support@shrotitele.com">support@shrotitele.com</a></p>
-    </div>
-</div>
+<h2>4. Data Storage & Security</h2>
+<p><strong>Local Storage:</strong> User authentication tokens and name are stored using secure device storage (AsyncStorage).</p>
+<p><strong>Server Storage:</strong> Site data is stored on Shroti Telecom Pvt. Ltd.'s backend servers.</p>
+<p><strong>Security:</strong> All communication is secured using HTTPS (TLS encryption).</p>
+
+<h2>5. Data Sharing</h2>
+<p>We do not sell, rent, or share personal data with third parties. Data may only be shared within the organization or if required by law.</p>
+
+<h2>6. Children's Privacy</h2>
+<p>This app is intended for users aged 18 and above. We do not knowingly collect data from children.</p>
+
+<h2>7. Your Rights</h2>
+<ul>
+    <li>You can request access to your data</li>
+    <li>You can request correction or deletion</li>
+    <li>You can stop using the app anytime</li>
+</ul>
+
+<h2>8. Contact Us</h2>
+<p>If you have any questions about this Privacy Policy, you can contact us:</p>
+<p><strong>Shroti Telecom Pvt. Ltd.</strong><br>
+Email: support@shrotitele.com</p>
+
+<h2>9. Changes to This Privacy Policy</h2>
+<p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated date.</p>
 
 </body>
 </html>
