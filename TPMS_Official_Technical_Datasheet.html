@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TPMS – Technical Product Specification & Datasheet</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px; background: #fff; }
+        .header-box { border-bottom: 3px solid #1a3c8f; margin-bottom: 30px; padding-bottom: 10px; }
+        .header-box h1 { color: #1a3c8f; margin: 0; font-size: 28px; }
+        .header-box p { margin: 5px 0; font-weight: bold; color: #666; }
+        
+        h2 { background: #f0f4ff; color: #1a3c8f; padding: 10px; border-left: 5px solid #1a3c8f; font-size: 20px; margin-top: 30px; }
+        h3 { color: #1a3c8f; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #1a3c8f; font-weight: bold; }
+        tr:nth-child(even) { background-color: #fafafa; }
+
+        .feature-list { list-style: none; padding: 0; }
+        .feature-list li { margin-bottom: 10px; padding-left: 25px; position: relative; font-size: 14.5px; }
+        .feature-list li::before { content: '✔'; position: absolute; left: 0; color: #2ecc71; font-weight: bold; }
+
+        .note-box { background: #fff8e1; border: 1px solid #ffe082; padding: 15px; border-radius: 5px; font-size: 13.5px; margin: 20px 0; }
+        .contact-table td { padding: 5px 10px; border: none; }
+        .contact-table { border: none; margin-top: 40px; background: #f9f9f9; padding: 20px; border-radius: 10px; }
+        
+        @media print {
+            body { padding: 0; background: white; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-box">
+        <h1>TPMS – Theft Prevention Management System</h1>
+        <p>Official Product Technical Datasheet & Specification (v2.0)</p>
+        <p>Shroti Telecom Pvt. Ltd. | Innovation with Excellence</p>
+    </div>
+
+    <h2>1. Product Overview</h2>
+    <p>
+        The <strong>TPMS (Telecom Power Monitoring System)</strong> is an enterprise-grade IoT platform developed by Shroti Telecom for real-time remote monitoring and security of passive infrastructure. Derived from its core 2026 unified codebase, the system combines hardware-level sensing with a powerful Laravel REST API and a CodeIgniter-based dashboard to provide 24/7 visibility into site health, security, and power consumption.
+    </p>
+
+    <h2>2. Key Features (Verified from System Code)</h2>
+    <ul class="feature-list">
+        <li><strong>Real-Time Site Status Track:</strong> Differentiates between 'Active' (Communicating) and 'Non-Comm' (Stopped) sites using last-received data timestamps.</li>
+        <li><strong>Multi-Level Alarm Classification:</strong> Groups alarms into 7 Priority Levels: Critical, Major, Minor, Information, Reset, Clear, and Site Alarm.</li>
+        <li><strong>Advanced Intrusion Detection:</strong> Monitors physical site security including Door Open, Cabinet Open, and Enclosure Tampering.</li>
+        <li><strong>Automated Escalation Matrix:</strong> Stores L1 to L5 contact numbers per site for instant automated alerts (Mobile App, WhatsApp, Robo-Calls).</li>
+        <li><strong>Energy Management:</strong> Tracks 5-channel Energy Meter data (KWH) and calculates Site Run Hours for EB, DG, and Battery.</li>
+        <li><strong>Integrated NOC Dashboard:</strong> Enterprise-wide visualization with state-wise India Heatmap and Pie/Column charts for alarm status.</li>
+        <li><strong>Role-Based Access:</strong> 6 tiers of user hierarchy (NationalLevel down to LevelOne) ensures data security and role accountability.</li>
+        <li><strong>Field Evidence Support:</strong> Capability to upload and view site/battery installation images directly in the site details module.</li>
+    </ul>
+
+    <h2>3. Product Details</h2>
+    <table>
+        <tr><th width="30%">Parameter</th><th>Detail Specification</th></tr>
+        <tr><td>Product Name</td><td>TPMS (Theft Prevention Management System)</td></tr>
+        <tr><td>Technical Build</td><td>Unified Backend (v1 / v2 Support)</td></tr>
+        <tr><td>Core Framework</td><td>Laravel (API) / CodeIgniter (Web Portal)</td></tr>
+        <tr><td>Database Architecture</td><td>MySQL (Sigma-API Schema)</td></tr>
+        <tr><td>Primary Protocol</td><td>MQTT (Real-time) / RESTful HTTP (Data Fetch)</td></tr>
+        <tr><td>Connected Devices</td><td>IAMS Controller / V0.7 Tracker / AMS Integrated Boards</td></tr>
+        <tr><td>Refresh Rate</td><td>Configurable (Standard: 5-6 Minutes)</td></tr>
+    </table>
+
+    <h2>4. Telemetry Parameters (Theft & Performance)</h2>
+    <p>The following parameters are extracted directly from the system's database logs (<code>site_status</code> and <code>al_site_status</code> tables):</p>
+    
+    <h3>A. Theft & Security Parameters</h3>
+    <table>
+        <tr><th>Flag Code</th><th>Parameter Description</th><th>Trigger Logic</th></tr>
+        <tr><td>DOOPN / DOPN</td><td>Door Open Alarm</td><td>Triggered when shelter/cabinet door is breached</td></tr>
+        <tr><td>TPCOV / COPN</td><td>Cover Open Alarm</td><td>Theft attempt on TPMS device box itself</td></tr>
+        <tr><td>BBLBK</td><td>Battery Loop Break</td><td>Indicates battery circuit has been tampered/cut</td></tr>
+        <tr><td>BTLV1 - 4</td><td>Battery Bank Disconnect</td><td>Individual tracking of up to 4 Battery Banks</td></tr>
+        <tr><td>EXTAL</td><td>External Alarm</td><td>External sensor trigger (e.g. Motion or fence)</td></tr>
+    </table>
+
+    <h3>B. Power & Environmental Parameters</h3>
+    <table>
+        <tr><th>Flag Code</th><th>Parameter Description</th><th>Units / Range</th></tr>
+        <tr><td>MNSF</td><td>Mains (EB) Failure</td><td>Boolean (ON/OFF)</td></tr>
+        <tr><td>HRT</td><td>High Room Temperature</td><td>Configurable Threshold (>Temp_Level)</td></tr>
+        <tr><td>BTLV</td><td>Battery Low Voltage</td><td>Configurable Threshold (<Volt_Level)</td></tr>
+        <tr><td>SOBT / SIOM</td><td>Site Running Status</td><td>Battery / Mains / DG (SODG)</td></tr>
+        <tr><td>VOLTAGE</td><td>Live Battery Voltage</td><td>0 - 100V DC (Accuracy 0.01V)</td></tr>
+        <tr><td>TEMPERATURE</td><td>Live Cabinet Temperature</td><td>Celsius (°C)</td></tr>
+    </table>
+
+    <h2>5. Energy Management & Reporting</h2>
+    <p>Using the <code>energyController</code> logic, TPMS provides high-precision utility monitoring:</p>
+    <table>
+        <tr><th>Metric</th><th>Description</th></tr>
+        <tr><td>KWH Reading</td><td>Logs energy consumption for 5 distinct channels (KWH1 to KWH5)</td></tr>
+        <tr><td>Run Hours</td><td>Calculates total site uptime on EB, DG, and Battery separately</td></tr>
+        <tr><td>Min/Max DCV</td><td>Records peak and low voltage levels during specified sessions</td></tr>
+        <tr><td>Historical Log</td><td>Daily, Weekly, and Monthly Energy Consumption reports exportable to Excel/CSV</td></tr>
+    </table>
+
+    <h2>6. System Administration & Escalation</h2>
+    <p>TPMS manages a structured response system for every alarm event:</p>
+    <ul class="feature-list">
+        <li><strong>User Hierarchy:</strong> National Admin → Circle Head → District Manager → Cluster Lead → Site Technician.</li>
+        <li><strong>Alert Channels:</strong> System triggers notifications via OneSignal (Push), WhatsApp communication, and Robo-Call voice alerts.</li>
+        <li><strong>Acknowledgement System:</strong> Tracks 'Call ACK' status for every alarm to ensure field team responsiveness.</li>
+        <li><strong>Site Master:</strong> Stores IMEI, SIM details, installation dates, and technician mapping for every tracker.</li>
+    </ul>
+
+    <h2>7. Technical Infrastructure</h2>
+    <table>
+        <tr><td>Backend Stack</td><td>PHP 7.4/8.x, Laravel 8+, CodeIgniter 3</td></tr>
+        <tr><td>Real-time Streaming</td><td>Server-Sent Events (SSE) based on MQTT feed</td></tr>
+        <tr><td>Mobile App</td><td>React Native (Android) with OneSignal Push Integration</td></tr>
+        <tr><td>Mapping</td><td>Highcharts Maps (India State Heatmap Integration)</td></tr>
+        <tr><td>Data Security</td><td>Encrypted API Authentication / Password-protected user roles</td></tr>
+    </table>
+
+    <div class="contact-table">
+        <h3>Contact & Support - Shroti Telecom Pvt. Ltd.</h3>
+        <table>
+            <tr><td><strong>Website:</strong></td><td>www.shroti.in</td></tr>
+            <tr><td><strong>Corporate Office:</strong></td><td>S-17, Thaddaram Complex, M.P. Nagar Zone-I, Bhopal, M.P.</td></tr>
+            <tr><td><strong>Registered Office:</strong></td><td>113, Sundar Nagar, Ayodhya Bypass Road, Bhopal-462022</td></tr>
+            <tr><td><strong>Email:</strong></td><td>maneesh.shroti@shroti.in | shrikant.garge@shroti.in</td></tr>
+            <tr><td><strong>Contact Numbers:</strong></td><td>+91 8448394185 | +91 7021885300 | +91 7553501902</td></tr>
+        </table>
+    </div>
+
+</body>
+</html>

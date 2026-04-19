@@ -1,4 +1,4 @@
-package com.rmsapp
+package com.shroti.rmsapp
 
 import android.app.Application
 import com.facebook.react.PackageList
